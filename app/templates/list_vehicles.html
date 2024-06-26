@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <h1>List of Vehicles</h1>
+    <ul>
+        {% for vehicle in vehicles %}
+            <li>{{ vehicle.name }} - {{ vehicle.vehicle_number }}</li>
+            <!-- Optionally, add a link to view documents -->
+            <p><a href="{{ url_for('main.vehicle', vehicle_id=vehicle.id) }}">View Documents</a></p>
+        {% endfor %}
+    </ul>
+{% endblock %}

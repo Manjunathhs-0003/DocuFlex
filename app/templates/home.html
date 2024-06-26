@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - MCM{% endblock %}
+
+{% block content %}
+    <!-- Your home page content here -->
+    <!-- <h1>Home Page</h1> -->
+    <ul>
+        {% for vehicle in vehicles %}
+            <li>{{ vehicle.name }} - {{ vehicle.vehicle_number }}</li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('main.new_vehicle') }}">Add Vehicle</a>
+{% endblock %}

@@ -1,0 +1,14 @@
+<!-- templates/profile.html -->
+{% extends "layout.html" %}
+{% block content %}
+    <h1>Profile</h1>
+    <p>Username: {{ current_user.username }}</p>
+    <p>Email: {{ current_user.email }}</p>
+
+    <h2>Vehicles</h2>
+    <ul>
+        {% for vehicle in vehicles %}
+            <li>{{ vehicle.name }} - {{ vehicle.vehicle_number }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

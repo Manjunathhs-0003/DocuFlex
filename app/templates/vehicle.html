@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Vehicle: {{ vehicle.name }}</h2>
+  <a class="btn btn-primary" href="{{ url_for('main.new_document', vehicle_id=vehicle.id) }}">Add New Document</a>
+  <hr>
+  <h3>Documents</h3>
+  {% for document in vehicle.documents %}
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5 class="card-title">{{ document.title }}</h5>
+        <p class="card-text">{{ document.content }}</p>
+        <p class="card-text"><small class="text-muted">Posted on {{ document.date_posted.strftime('%Y-%m-%d') }}</small></p>
+      </div>
+    </div>
+  {% endfor %}
+{% endblock %}

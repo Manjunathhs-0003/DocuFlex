@@ -1,0 +1,25 @@
+<!-- templates/edit_document.html -->
+{% extends "layout.html" %}
+{% block content %}
+    <h1>Edit Document</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div>
+            {{ form.title.label }}<br>
+            {{ form.title(size=32) }}<br>
+            {% for error in form.title.errors %}
+                <span>{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div>
+            {{ form.content.label }}<br>
+            {{ form.content(size=32) }}<br>
+            {% for error in form.content.errors %}
+                <span>{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div>
+            {{ form.submit() }}
+        </div>
+    </form>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Add Document{% endblock %}
+
+{% block content %}
+<h1>Add Document for {{ vehicle.name }} - {{ vehicle.vehicle_number }}</h1>
+<form method="POST" action="{{ url_for('main.new_document', vehicle_id=vehicle.id) }}">
+    {{ form.hidden_tag() }}
+    <div>
+        {{ form.title.label }}<br>
+        {{ form.title(size=32) }}<br>
+        {% for error in form.title.errors %}
+            <span>{{ error }}</span>
+        {% endfor %}
+    </div>
+    <div>
+        {{ form.content.label }}<br>
+        {{ form.content(rows=5) }}<br>
+        {% for error in form.content.errors %}
+            <span>{{ error }}</span>
+        {% endfor %}
+    </div>
+    <div>
+        {{ form.submit() }}
+    </div>
+</form>
+{% endblock %}
