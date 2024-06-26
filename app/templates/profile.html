@@ -8,7 +8,9 @@
     <h2>Vehicles</h2>
     <ul>
         {% for vehicle in vehicles %}
-            <li>{{ vehicle.name }} - {{ vehicle.vehicle_number }}</li>
+            <li>
+                <a href="{{ url_for('main.vehicle', vehicle_id=vehicle.id) }}">{{ vehicle.name }} - {{ vehicle.vehicle_number }}</a>
+            </li>
         {% endfor %}
     </ul>
 {% endblock %}

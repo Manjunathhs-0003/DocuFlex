@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, DateField
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
 from app.models import User, Vehicle
 
@@ -38,6 +38,16 @@ class VehicleForm(FlaskForm):
             raise ValidationError('That vehicle number is already registered. Please choose a different one.')
 
 class DocumentForm(FlaskForm):
-    title = StringField('Title', validators=[DataRequired()])
-    content = TextAreaField('Content', validators=[DataRequired()])
+    document_type = SelectField('Document Type', choices=[
+        ('Insurance', 'Insurance'),
+        ('Emission Certificate', 'Emission Certificate'),
+        ('Registration Certificate', 'Registration Certificate'),
+        ('Permit', 'Permit'),
+        ('Vehicle Registration', 'Vehicle Registration'),
+        ('Annual Inspection', 'Annual Inspection'),
+        ('Road Tax Receipt', 'Road Tax Receipt')
+    ], validators=[DataRequired()])
+    serial_number = StringField('Serial Number', validators=[DataRequired()])
+    start_date = DateField('Start Date', format='%Y-%m-%d', validators=[DataRequired()])
+    end_date = DateField('End Date', format='%Y-%m-%d', validators=[DataRequired()])
     submit = SubmitField('Add Document')

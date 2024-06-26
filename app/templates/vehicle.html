@@ -1,16 +1,21 @@
-{% extends "base.html" %}
+<!-- templates/vehicle.html -->
+{% extends "layout.html" %}
 {% block content %}
-  <h2>Vehicle: {{ vehicle.name }}</h2>
-  <a class="btn btn-primary" href="{{ url_for('main.new_document', vehicle_id=vehicle.id) }}">Add New Document</a>
-  <hr>
-  <h3>Documents</h3>
-  {% for document in vehicle.documents %}
-    <div class="card mb-3">
-      <div class="card-body">
-        <h5 class="card-title">{{ document.title }}</h5>
-        <p class="card-text">{{ document.content }}</p>
-        <p class="card-text"><small class="text-muted">Posted on {{ document.date_posted.strftime('%Y-%m-%d') }}</small></p>
-      </div>
-    </div>
-  {% endfor %}
+    <h1>{{ vehicle.name }}</h1>
+    <p>Vehicle Number: {{ vehicle.vehicle_number }}</p>
+    
+    <h2>Documents</h2>
+    <ul>
+        {% for document in vehicle.documents %}
+            <li>
+                {{ document.document_type }} - Serial Number: {{ document.serial_number }}
+                <a href="{{ url_for('main.edit_document', vehicle_id=vehicle.id, document_id=document.id) }}">Edit</a> |
+                <form method="POST" action="{{ url_for('main.delete_document', vehicle_id=vehicle.id, document_id=document.id) }}" style="display:inline;">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="submit" value="Delete" class="btn btn-danger btn-sm">
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('main.new_document', vehicle_id=vehicle.id) }}">Add New Document</a>
 {% endblock %}

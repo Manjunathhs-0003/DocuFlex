@@ -13,7 +13,7 @@ main = Blueprint('main', __name__)
 def index():
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
-    return render_template('mcm.html')  # Assuming 'mcm.html' is your welcome page
+    return render_template('mcm.html')
 
 @main.route("/home")
 @login_required
@@ -25,7 +25,7 @@ def home():
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
-    
+
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
@@ -35,14 +35,14 @@ def login():
             return redirect(next_page or url_for('main.home'))
         else:
             flash('Login unsuccessful. Please check email and password.', 'danger')
-    
+
     return render_template('login.html', form=form)
 
 @main.route("/register", methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
-    
+
     form = RegistrationForm()
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
@@ -51,7 +51,7 @@ def register():
         db.session.commit()
         flash('Your account has been created! You are now able to log in.', 'success')
         return redirect(url_for('main.login'))
-    
+
     return render_template('register.html', form=form)
 
 @main.route("/logout")
@@ -73,8 +73,9 @@ def new_vehicle():
         except IntegrityError:
             db.session.rollback()
             flash('Vehicle number already exists. Please use a different vehicle number.', 'danger')
-    
+
     return render_template('create_vehicle.html', form=form)
+
 
 @main.route("/vehicle/<int:vehicle_id>")
 @login_required
@@ -82,7 +83,7 @@ def vehicle(vehicle_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
     if vehicle.owner != current_user:
         abort(403)
-    
+
     return render_template('vehicle.html', vehicle=vehicle)
 
 @main.route("/vehicle/<int:vehicle_id>/document/new", methods=['GET', 'POST'])
@@ -91,9 +92,13 @@ def new_document(vehicle_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
     form = DocumentForm()
     if form.validate_on_submit():
-        document = Document(title=form.title.data,
-                            content=form.content.data,
-                            vehicle=vehicle)
+        document = Document(
+            document_type=form.document_type.data,
+            serial_number=form.serial_number.data,
+            start_date=form.start_date.data,
+            end_date=form.end_date.data,
+            vehicle=vehicle
+        )
         db.session.add(document)
         db.session.commit()
         flash('Your document has been created!', 'success')
@@ -155,14 +160,18 @@ def edit_document(vehicle_id, document_id):
 
     form = DocumentForm()
     if form.validate_on_submit():
-        document.title = form.title.data
-        document.content = form.content.data
+        document.document_type = form.document_type.data
+        document.serial_number = form.serial_number.data
+        document.start_date = form.start_date.data
+        document.end_date = form.end_date.data
         db.session.commit()
         flash('Your document has been updated!', 'success')
         return redirect(url_for('main.vehicle', vehicle_id=vehicle.id))
     elif request.method == 'GET':
-        form.title.data = document.title
-        form.content.data = document.content
+        form.document_type.data = document.document_type
+        form.serial_number.data = document.serial_number
+        form.start_date.data = document.start_date
+        form.end_date.data = document.end_date
 
     return render_template('edit_document.html', form=form, vehicle=vehicle, document=document)
 

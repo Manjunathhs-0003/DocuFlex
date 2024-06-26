@@ -1,8 +1,8 @@
-"""Initial migration
+"""Add new fields to Document model
 
-Revision ID: cfd0e4e7cd99
+Revision ID: edb7fefa385e
 Revises: 
-Create Date: 2024-06-26 12:56:43.638133
+Create Date: 2024-06-26 19:10:49.259745
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'cfd0e4e7cd99'
+revision = 'edb7fefa385e'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -39,8 +39,10 @@ def upgrade():
     )
     op.create_table('document',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('title', sa.String(length=100), nullable=False),
-    sa.Column('content', sa.Text(), nullable=False),
+    sa.Column('document_type', sa.String(length=50), nullable=False),
+    sa.Column('serial_number', sa.String(length=100), nullable=False),
+    sa.Column('start_date', sa.DateTime(), nullable=False),
+    sa.Column('end_date', sa.DateTime(), nullable=False),
     sa.Column('date_posted', sa.DateTime(), nullable=False),
     sa.Column('vehicle_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['vehicle_id'], ['vehicle.id'], ondelete='CASCADE'),

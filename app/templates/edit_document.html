@@ -1,25 +1,28 @@
 <!-- templates/edit_document.html -->
+
 {% extends "layout.html" %}
 {% block content %}
     <h1>Edit Document</h1>
-    <form method="POST">
+    <form method="POST" action="">
         {{ form.hidden_tag() }}
-        <div>
-            {{ form.title.label }}<br>
-            {{ form.title(size=32) }}<br>
-            {% for error in form.title.errors %}
-                <span>{{ error }}</span>
-            {% endfor %}
+        <div class="form-group">
+            {{ form.document_type.label(class="form-control-label") }}
+            {{ form.document_type(class="form-control form-control-lg") }}
         </div>
-        <div>
-            {{ form.content.label }}<br>
-            {{ form.content(size=32) }}<br>
-            {% for error in form.content.errors %}
-                <span>{{ error }}</span>
-            {% endfor %}
+        <div class="form-group">
+            {{ form.serial_number.label(class="form-control-label") }}
+            {{ form.serial_number(class="form-control form-control-lg") }}
         </div>
-        <div>
-            {{ form.submit() }}
+        <div class="form-group">
+            {{ form.start_date.label(class="form-control-label") }}
+            {{ form.start_date(class="form-control form-control-lg") }}
+        </div>
+        <div class="form-group">
+            {{ form.end_date.label(class="form-control-label") }}
+            {{ form.end_date(class="form-control form-control-lg") }}
+        </div>
+        <div class="form-group">
+            {{ form.submit(class="btn btn-primary") }}
         </div>
     </form>
 {% endblock %}
