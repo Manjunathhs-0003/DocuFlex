@@ -1,21 +1,25 @@
-<!-- templates/vehicle.html -->
 {% extends "layout.html" %}
+
+{% block title %}{{ vehicle.name }} - Vehicle Details{% endblock %}
+
 {% block content %}
-    <h1>{{ vehicle.name }}</h1>
-    <p>Vehicle Number: {{ vehicle.vehicle_number }}</p>
-    
-    <h2>Documents</h2>
-    <ul>
-        {% for document in vehicle.documents %}
-            <li>
-                {{ document.document_type }} - Serial Number: {{ document.serial_number }}
-                <a href="{{ url_for('main.edit_document', vehicle_id=vehicle.id, document_id=document.id) }}">Edit</a> |
-                <form method="POST" action="{{ url_for('main.delete_document', vehicle_id=vehicle.id, document_id=document.id) }}" style="display:inline;">
-                    <input type="hidden" name="_method" value="DELETE">
-                    <input type="submit" value="Delete" class="btn btn-danger btn-sm">
-                </form>
-            </li>
-        {% endfor %}
-    </ul>
-    <a href="{{ url_for('main.new_document', vehicle_id=vehicle.id) }}">Add New Document</a>
+    <div class="container">
+        <h1>{{ vehicle.name }}</h1>
+        <p>Vehicle Number: {{ vehicle.vehicle_number }}</p>
+        
+        <h2>Documents</h2>
+        <ul class="list-group">
+            {% for document in vehicle.documents %}
+                <li class="list-group-item">
+                    {{ document.document_type }} - Serial Number: {{ document.serial_number }}
+                    <a href="{{ url_for('main.edit_document', vehicle_id=vehicle.id, document_id=document.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+                    <form method="POST" action="{{ url_for('main.delete_document', vehicle_id=vehicle.id, document_id=document.id) }}" style="display:inline;">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <input type="submit" value="Delete" class="btn btn-danger btn-sm">
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+        <a href="{{ url_for('main.new_document', vehicle_id=vehicle.id) }}" class="btn btn-primary">Add New Document</a>
+    </div>
 {% endblock %}

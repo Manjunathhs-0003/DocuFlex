@@ -1,25 +1,30 @@
 <!-- templates/edit_vehicle.html -->
-{% extends "layout.html" %}
+{% extends "base.html" %}
+
+{% block title %}Edit Vehicle - MCM{% endblock %}
+
 {% block content %}
-    <h1>Edit Vehicle</h1>
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        <div>
-            {{ form.name.label }}<br>
-            {{ form.name(size=32) }}<br>
-            {% for error in form.name.errors %}
-                <span>{{ error }}</span>
-            {% endfor %}
-        </div>
-        <div>
-            {{ form.vehicle_number.label }}<br>
-            {{ form.vehicle_number(size=32) }}<br>
-            {% for error in form.vehicle_number.errors %}
-                <span>{{ error }}</span>
-            {% endfor %}
-        </div>
-        <div>
-            {{ form.submit() }}
-        </div>
-    </form>
+    <div class="form-container">
+        <h1>Edit Vehicle</h1>
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.name.label(class="form-control-label") }}<br>
+                {{ form.name(class="form-control form-control-lg") }}<br>
+                {% for error in form.name.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                {{ form.vehicle_number.label(class="form-control-label") }}<br>
+                {{ form.vehicle_number(class="form-control form-control-lg") }}<br>
+                {% for error in form.vehicle_number.errors %}
+                    <span class="text-danger">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
 {% endblock %}

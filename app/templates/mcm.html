@@ -3,5 +3,16 @@
 {% block title %}MCM{% endblock %}
 
 {% block content %}
-    <p>Welcome to MCM. Please Login or Register to manage your vehicles.</p>
+<div class="container">
+  <div class="row justify-content-center mt-5">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-body">
+          <h2 class="card-title">Welcome to MCM</h2>
+          <p class="card-text">Please <a href="{{ url_for('main.login') }}">Login</a> or <a href="{{ url_for('main.register') }}">Register</a> to manage your vehicles.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

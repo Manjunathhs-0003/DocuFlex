@@ -3,12 +3,18 @@
 {% block title %}Home - MCM{% endblock %}
 
 {% block content %}
-    <!-- Your home page content here -->
-    <!-- <h1>Home Page</h1> -->
-    <ul>
-        {% for vehicle in vehicles %}
-            <li>{{ vehicle.name }} - {{ vehicle.vehicle_number }}</li>
-        {% endfor %}
-    </ul>
-    <!-- <a href="{{ url_for('main.new_vehicle') }}">Add Vehicle</a> -->
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <h1>Welcome to MCM</h1>
+                <p>Explore your vehicles:</p>
+                <ul class="list-group">
+                    {% for vehicle in vehicles %}
+                        <li class="list-group-item">{{ vehicle.name }} - {{ vehicle.vehicle_number }}</li>
+                    {% endfor %}
+                </ul>
+                <a href="{{ url_for('main.new_vehicle') }}" class="btn btn-primary mt-3">Add New Vehicle</a>
+            </div>
+        </div>
+    </div>
 {% endblock %}

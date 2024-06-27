@@ -1,8 +1,8 @@
-"""Add new fields to Document model
+"""Initial Migration
 
-Revision ID: edb7fefa385e
+Revision ID: 5c2b556ae912
 Revises: 
-Create Date: 2024-06-26 19:10:49.259745
+Create Date: 2024-06-26 20:54:21.589236
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'edb7fefa385e'
+revision = '5c2b556ae912'
 down_revision = None
 branch_labels = None
 depends_on = None

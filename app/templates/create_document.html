@@ -1,28 +1,30 @@
 <!-- templates/create_document.html -->
-{% extends "layout.html" %}
+{% extends "base.html" %}
+
+{% block title %}Add New Document - MCM{% endblock %}
 
 {% block content %}
 <h1>Add New Document</h1>
 <form method="POST" action="">
     {{ form.hidden_tag() }}
-    <div>
-        {{ form.document_type.label }}<br>
-        {{ form.document_type }}
+    <div class="form-group">
+        {{ form.document_type.label(class="form-label") }}<br>
+        {{ form.document_type(class="form-control") }}
     </div>
-    <div>
-        {{ form.serial_number.label }}<br>
-        {{ form.serial_number }}
+    <div class="form-group">
+        {{ form.serial_number.label(class="form-label") }}<br>
+        {{ form.serial_number(class="form-control") }}
     </div>
-    <div>
-        {{ form.start_date.label }}<br>
-        {{ form.start_date(type="date") }}
+    <div class="form-group">
+        {{ form.start_date.label(class="form-label") }}<br>
+        {{ form.start_date(class="form-control", type="date") }}
     </div>
-    <div>
-        {{ form.end_date.label }}<br>
-        {{ form.end_date(type="date") }}
+    <div class="form-group">
+        {{ form.end_date.label(class="form-label") }}<br>
+        {{ form.end_date(class="form-control", type="date") }}
     </div>
-    <div>
-        {{ form.submit }}
+    <div class="form-group">
+        {{ form.submit(class="btn btn-primary") }}
     </div>
 </form>
 {% endblock %}

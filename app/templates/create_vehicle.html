@@ -1,17 +1,24 @@
-<!-- create_vehicle.html -->
-{% extends "layout.html" %}
+<!-- templates/create_vehicle.html -->
+{% extends "base.html" %}
+
+{% block title %}Add New Vehicle - MCM{% endblock %}
+
 {% block content %}
-    <h1>Add New Vehicle</h1>
-    <form method="POST" action="{{ url_for('main.new_vehicle') }}">
-        {{ form.hidden_tag() }}
-        <div class="form-group">
-            {{ form.name.label }} {{ form.name(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.vehicle_number.label }} {{ form.vehicle_number(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.submit(class="btn btn-primary") }}
-        </div>
-    </form>
+    <div class="form-container">
+        <h1>Add New Vehicle</h1>
+        <form method="POST" action="{{ url_for('main.new_vehicle') }}">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.name.label(class="form-label") }}<br>
+                {{ form.name(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.vehicle_number.label(class="form-label") }}<br>
+                {{ form.vehicle_number(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+    </div>
 {% endblock %}

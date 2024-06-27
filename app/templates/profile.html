@@ -1,16 +1,29 @@
-<!-- templates/profile.html -->
 {% extends "layout.html" %}
-{% block content %}
-    <h1>Profile</h1>
-    <p>Username: {{ current_user.username }}</p>
-    <p>Email: {{ current_user.email }}</p>
 
-    <h2>Vehicles</h2>
-    <ul>
+{% block title %}Profile - MCM{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8">
+      <h1>Profile</h1>
+      <div class="card">
+        <div class="card-body">
+          <h2>{{ current_user.username }}</h2>
+          <p>Email: {{ current_user.email }}</p>
+        </div>
+      </div>
+
+      <h2 class="mt-4">Your Vehicles</h2>
+      <ul class="list-group mt-3">
         {% for vehicle in vehicles %}
-            <li>
-                <a href="{{ url_for('main.vehicle', vehicle_id=vehicle.id) }}">{{ vehicle.name }} - {{ vehicle.vehicle_number }}</a>
-            </li>
+        <li class="list-group-item">
+          <a href="{{ url_for('main.vehicle', vehicle_id=vehicle.id) }}">{{ vehicle.name }} - {{ vehicle.vehicle_number }}</a>
+          <a href="{{ url_for('main.edit_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-sm btn-secondary float-right">Edit</a>
+        </li>
         {% endfor %}
-    </ul>
+      </ul>
+    </div>
+  </div>
+</div>
 {% endblock %}
