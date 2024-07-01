@@ -14,12 +14,12 @@ class RegistrationForm(FlaskForm):
     def validate_username(self, username):
         user = User.query.filter_by(username=username.data).first()
         if user:
-            raise ValidationError('That username is taken. Please choose a different one.')
+            raise ValidationError('This username is taken. Please choose a different one.')
 
     def validate_email(self, email):
         user = User.query.filter_by(email=email.data).first()
         if user:
-            raise ValidationError('That email is taken. Please choose a different one.')
+            raise ValidationError('This email is taken. Please choose a different one.')
 
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
@@ -35,7 +35,7 @@ class VehicleForm(FlaskForm):
     def validate_vehicle_number(self, vehicle_number):
         vehicle = Vehicle.query.filter_by(vehicle_number=vehicle_number.data).first()
         if vehicle:
-            raise ValidationError('That vehicle number is already registered. Please choose a different one.')
+            raise ValidationError('This vehicle number is already registered. Please choose a different one.')
 
 class DocumentForm(FlaskForm):
     document_type = SelectField('Document Type', choices=[
