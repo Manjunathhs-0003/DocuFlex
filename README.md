@@ -15,6 +15,7 @@
     <p>
         So far, user authentication, vehicle management, and document management features have been implemented. Email notifications are set up to alert users 10 days before document expiration. A scheduler (APScheduler) runs daily to check for expiring documents and send reminders. Future work involves integrating SMS notifications via Twilio and refining the user interface.
     </p>
+    <p>Contributions are WELCOME!!</p>
 
 </body>
 </html>
