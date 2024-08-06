@@ -1,4 +1,9 @@
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+basedir = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(basedir, ".env"))
 
 
 class Config:
@@ -6,10 +11,9 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL") or "sqlite:///site.db"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Flask-Mail Configuration
-    MAIL_SERVER = "smtp.gmail.com"  # Replace with your SMTP server
-    MAIL_PORT = 587  # Commonly used port for TLS
+    MAIL_SERVER = "smtp.gmail.com"
+    MAIL_PORT = 587
     MAIL_USE_TLS = True
-    MAIL_USERNAME = os.environ.get("EMAIL_USER")  # Or set directly as a string
-    MAIL_PASSWORD = os.environ.get("EMAIL_PASS")  # Or set directly as a string
-    MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER")  # Default sender email
+    MAIL_USERNAME = os.environ.get("EMAIL_USER")
+    MAIL_PASSWORD = os.environ.get("EMAIL_PASS")
+    MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER")
