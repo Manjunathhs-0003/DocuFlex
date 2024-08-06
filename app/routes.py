@@ -1,10 +1,12 @@
 # app/routes.py
 
+from datetime import datetime, timedelta
 from flask import Blueprint, render_template, url_for, flash, redirect, request, abort
 from flask_login import login_user, current_user, logout_user, login_required
 from app import db, bcrypt
 from app.models import User, Vehicle, Document
 from app.forms import RegistrationForm, LoginForm, VehicleForm, DocumentForm
+from app.email_utils import send_notification  # Import the send_notification function
 from sqlalchemy.exc import IntegrityError
 
 main = Blueprint('main', __name__)
@@ -187,3 +189,37 @@ def delete_document(vehicle_id, document_id):
     db.session.commit()
     flash('Your document has been deleted!', 'success')
     return redirect(url_for('main.vehicle', vehicle_id=vehicle.id))
+
+
+@main.route("/vehicle/<int:vehicle_id>/document/new", methods=['GET', 'POST'])
+@login_required
+def new_document(vehicle_id):
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+    form = DocumentForm()
+    if form.validate_on_submit():
+        document = Document(
+            document_type=form.document_type.data,
+            serial_number=form.serial_number.data,
+            start_date=form.start_date.data,
+            end_date=form.end_date.data,
+            vehicle=vehicle
+        )
+        db.session.add(document)
+        db.session.commit()
+
+        # Send email notification
+        notify_user(document)
+
+        flash('Your document has been created!', 'success')
+        return redirect(url_for('main.vehicle', vehicle_id=vehicle.id))
+    return render_template('create_document.html', form=form, vehicle=vehicle)
+
+def notify_user(document):
+    user = document.vehicle.owner
+    expiration_alert_period = timedelta(days=30)  # Notify 30 days before expiration
+
+    if document.end_date - datetime.utcnow() <= expiration_alert_period:
+        subject = f'Document Expiry Notification for {document.document_type}'
+        recipients = [user.email]
+        body = f'Dear {user.username},\n\nYour {document.document_type} document for vehicle {document.vehicle.name} is set to expire on {document.end_date}.'
+        send_notification(subject, recipients, body)
