@@ -7,38 +7,47 @@ from wtforms import (
     SelectField,
     DateField,
 )
-from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
+from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Regexp
 from app.models import User, Vehicle
-
 
 class RegistrationForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired()])
     email = StringField("Email", validators=[DataRequired(), Email()])
+    phone = StringField("Phone", validators=[
+        DataRequired(),
+        Regexp(r'^\d{10}$', message="Invalid phone number. Must be 10 digits.")
+    ])  # Add validators to ensure 10 digit number
     password = PasswordField("Password", validators=[DataRequired()])
-    confirm_password = PasswordField(
-        "Confirm Password", validators=[DataRequired(), EqualTo("password")]
-    )
+    confirm_password = PasswordField("Confirm Password", validators=[DataRequired(), EqualTo("password")])
     submit = SubmitField("Sign Up")
 
     def validate_username(self, username):
         user = User.query.filter_by(username=username.data).first()
         if user:
-            raise ValidationError(
-                "This username is taken. Please choose a different one."
-            )
+            raise ValidationError("This username is taken. Please choose a different one.")
 
     def validate_email(self, email):
         user = User.query.filter_by(email=email.data).first()
         if user:
             raise ValidationError("This email is taken. Please choose a different one.")
 
+    def validate_phone(self, phone):
+        user = User.query.filter_by(phone=f'+91{phone.data}').first()  # check to avoid duplicates
+        if user:
+            raise ValidationError("This phone number is already registered.")
+
+    def validate_on_submit(self):
+        rv = super(RegistrationForm, self).validate_on_submit()
+        if rv:
+            # Prepend +91 to phone numbers
+            self.phone.data = f'+91{self.phone.data}'
+        return rv
 
 class LoginForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired(), Email()])
     password = PasswordField("Password", validators=[DataRequired()])
     remember = BooleanField("Remember Me")
     submit = SubmitField("Login")
-
 
 class VehicleForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
@@ -51,7 +60,6 @@ class VehicleForm(FlaskForm):
             raise ValidationError(
                 "This vehicle number is already registered. Please choose a different one."
             )
-
 
 class DocumentForm(FlaskForm):
     document_type = SelectField(

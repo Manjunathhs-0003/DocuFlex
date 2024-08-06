@@ -22,6 +22,13 @@
                 {% endfor %}
             </div>
             <div class="form-group">
+                {{ form.phone.label(class="form-control-label") }}
+                {{ form.phone(class="form-control", placeholder="Enter 10 digit phone number") }}
+                {% for error in form.phone.errors %}
+                    <small class="form-text text-danger">{{ error }}</small>
+                {% endfor %}
+            </div>
+            <div class="form-group">
                 {{ form.password.label(class="form-control-label") }}
                 {{ form.password(class="form-control", placeholder="Enter password") }}
                 {% for error in form.password.errors %}

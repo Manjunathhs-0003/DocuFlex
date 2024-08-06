@@ -1,5 +1,3 @@
-# app/routes.py
-
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, url_for, flash, redirect, request, abort
 from flask_login import login_user, current_user, logout_user, login_required
@@ -9,6 +7,8 @@ from app.forms import RegistrationForm, LoginForm, VehicleForm, DocumentForm
 from app.email_utils import send_notification  # Import the send_notification function
 from sqlalchemy.exc import IntegrityError
 import logging
+from twilio.rest import Client
+import os
 
 main = Blueprint("main", __name__)
 
@@ -48,11 +48,12 @@ def register():
 
     form = RegistrationForm()
     if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode(
-            "utf-8"
-        )
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
         user = User(
-            username=form.username.data, email=form.email.data, password=hashed_password
+            username=form.username.data,
+            email=form.email.data,
+            phone=form.phone.data,  # Ensure proper field capture as +91 re-prefixed
+            password=hashed_password
         )
         db.session.add(user)
         db.session.commit()
@@ -208,9 +209,24 @@ def delete_document(vehicle_id, document_id):
 # Setup basic logging configuration
 logging.basicConfig(level=logging.INFO)
 
+def send_sms(to, body):
+    account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
+    auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
+    twilio_phone_number = os.environ.get('TWILIO_PHONE_NUMBER')
+    
+    client = Client(account_sid, auth_token)
+    message = client.messages.create(
+        body=body,
+        from_=twilio_phone_number,
+        to=to
+    )
+
+    logging.info(f"SMS sent successfully to {to}")
+
+# notify_user function example
 def notify_user(document):
     user = document.vehicle.owner
-    expiration_alert_period = timedelta(days=10)  # Notify 30 days before expiration
+    expiration_alert_period = timedelta(days=10)  # Notify 10 days before expiration
 
     logging.info("Checking document expiration for notification.")
 
@@ -231,7 +247,18 @@ def notify_user(document):
             f"Manjunatha Cargo Movers"
         )
 
+        # Send email notification
         send_notification(subject, recipients, body)
+
+        # Send SMS notification
+        sms_body = (
+            f"Dear {user.username}, "
+            f"Your {document.document_type} for vehicle {document.vehicle.name} "
+            f"(Vehicle Number: {document.vehicle.vehicle_number}) expires on {document.end_date.strftime('%Y-%m-%d')}. "
+            f"Serial: {document.serial_number}. Please renew it in time. Manjunatha Cargo Movers"
+        )
+        send_sms(user.phone, sms_body)
+        
         logging.info(f"Notification sent successfully to email: {user.email}")
     else:
         logging.info(f"Document {document.document_type} is not expiring soon.")
