@@ -17,3 +17,4 @@ class Config:
     MAIL_USERNAME = os.environ.get("EMAIL_USER")
     MAIL_PASSWORD = os.environ.get("EMAIL_PASS")
     MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER")
+    SECURITY_PASSWORD_SALT = os.environ.get("SECURITY_PASSWORD_SALT") or "forgive-and-forget" 

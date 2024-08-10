@@ -6,6 +6,7 @@ from wtforms import (
     SubmitField,
     SelectField,
     DateField,
+    IntegerField,
 )
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Regexp
 from app.models import User, Vehicle
@@ -44,10 +45,23 @@ class RegistrationForm(FlaskForm):
         return rv
 
 class LoginForm(FlaskForm):
-    email = StringField("Email", validators=[DataRequired(), Email()])
-    password = PasswordField("Password", validators=[DataRequired()])
-    remember = BooleanField("Remember Me")
-    submit = SubmitField("Login")
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password')
+    submit = SubmitField('Login')
+    request_otp = SubmitField('Request OTP')
+    
+class OTPForm(FlaskForm):
+    otp = IntegerField('OTP', validators=[DataRequired()])
+    submit = SubmitField('Verify OTP')
+    
+class PasswordRecoveryForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Send Password Reset')
+    
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Reset Password')
 
 class VehicleForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
@@ -85,3 +99,13 @@ class RenewalForm(FlaskForm):
     start_date = DateField('New Start Date', format='%Y-%m-%d', validators=[DataRequired()])
     end_date = DateField('New End Date', format='%Y-%m-%d', validators=[DataRequired()])
     submit = SubmitField('Renew Document')
+    
+    
+class OTPForm(FlaskForm):
+    otp = IntegerField('OTP', validators=[DataRequired()])
+    submit = SubmitField('Verify OTP')
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Reset Password')

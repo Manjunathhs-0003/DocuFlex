@@ -34,3 +34,4 @@ class Document(db.Model):
         nullable=False,
         index=True,
     )
+    

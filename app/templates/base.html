@@ -9,6 +9,34 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <!-- Font Awesome CSS for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+    <style>
+        /* Ensure the body and html take full height */
+        html, body {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            flex: 1;
+        }
+
+        /* Style for ensuring footer remains at bottom */
+        .footer {
+            background-color: #343a40; /* Dark background for footer */
+            color: white; /* White text color for footer */
+        }
+
+        .footer.content {
+            flex: 1 0 auto;
+        }
+
+        .main-content {
+            flex: 1;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -55,7 +83,7 @@
         {% endif %}
     {% endwith %}
 
-    <main class="container mt-4">
+    <main class="main-content container mt-4">
         {% block content %}{% endblock %}
     </main>
 

@@ -1,17 +1,33 @@
 from datetime import datetime, timedelta
-from flask import Blueprint, render_template, url_for, flash, redirect, request, abort
+from flask import Blueprint, render_template, url_for, flash, redirect, request, abort, session
 from flask_login import login_user, current_user, logout_user, login_required
 from app import db, bcrypt
 from app.models import User, Vehicle, Document
-from app.forms import RegistrationForm, LoginForm, VehicleForm, DocumentForm, RenewalForm
-from app.notification_utils import send_notification  # Import the send_notification function
+from app.forms import RegistrationForm, LoginForm, VehicleForm, DocumentForm, RenewalForm, PasswordRecoveryForm, OTPForm, ResetPasswordForm
+from app.notification_utils import send_notification 
 from sqlalchemy.exc import IntegrityError
 import logging
 from twilio.rest import Client
 from app.notification_utils import send_email, send_sms
 import os
+import random
+from itsdangerous import URLSafeTimedSerializer
+from flask import current_app
+import re
 
 main = Blueprint("main", __name__)
+
+def generate_recovery_token(user_email):
+    s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    return s.dumps(user_email, salt=current_app.config['SECURITY_PASSWORD_SALT'])
+
+def verify_recovery_token(token, expiration=3600):
+    s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    try:
+        email = s.loads(token, salt=current_app.config['SECURITY_PASSWORD_SALT'], max_age=expiration)
+    except:
+        return False
+    return email
 
 @main.route("/")
 def index():
@@ -25,22 +41,92 @@ def home():
     vehicles = Vehicle.query.filter_by(owner=current_user).all()
     return render_template("home.html", vehicles=vehicles)
 
-@main.route("/login", methods=["GET", "POST"])
+@main.route("/login", methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("main.home"))
-
+        return redirect(url_for('main.home'))
+    
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
-        if user and bcrypt.check_password_hash(user.password, form.password.data):
-            login_user(user, remember=form.remember.data)
-            next_page = request.args.get("next")
-            return redirect(next_page or url_for("main.home"))
-        else:
-            flash("Login unsuccessful. Please check email and password.", "danger")
+        if form.submit.data:  # Handle login with password
+            if user and bcrypt.check_password_hash(user.password, form.password.data):
+                login_user(user, remember=True)
+                return redirect(url_for('main.home'))
+            else:
+                flash('Login unsuccessful. Please check email and password.', 'danger')
 
-    return render_template("login.html", form=form)
+        elif form.request_otp.data:  # Handle login with OTP
+            if user:
+                otp = random.randint(100000, 999999)
+                session['otp'] = otp
+                session['user_id'] = user.id
+                send_notification(
+                    "Your OTP Code",
+                    [user.email],
+                    f"Your OTP code is {otp}"
+                )
+                flash('An OTP has been sent to your email.', 'info')
+                return redirect(url_for('main.verify_otp'))
+            else:
+                flash('No account found with that email.', 'danger')
+
+    return render_template('login.html', form=form)
+
+@main.route("/verify_otp", methods=['GET', 'POST'])
+def verify_otp():
+    form = OTPForm()
+    if form.validate_on_submit():
+        if 'otp' in session and form.otp.data == session['otp']:
+            user = User.query.get(session['user_id'])
+            login_user(user, remember=True)
+            session.pop('otp')
+            session.pop('user_id')
+            return redirect(url_for('main.home'))
+        else:
+            flash('Invalid OTP. Please try again.', 'danger')
+    return render_template('verify_otp.html', form=form)
+
+@main.route("/password_recovery", methods=['GET', 'POST'])
+def password_recovery():
+    form = PasswordRecoveryForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user:
+            token = generate_recovery_token(user.email)
+            recovery_link = url_for('main.reset_password', token=token, _external=True)
+            send_notification(
+                "Password Recovery", 
+                [user.email], 
+                f"Reset your password using the following link: {recovery_link}"
+            )
+            flash('A password recovery link has been sent to your email.', 'info')
+        else:
+            flash('No account found with that email.', 'danger')
+    return render_template('password_recovery.html', form=form)
+
+@main.route("/reset_password/<token>", methods=['GET', 'POST'])
+def reset_password(token):
+    email = verify_recovery_token(token)
+    if not email:
+        flash('Invalid or expired token.', 'danger')
+        return redirect(url_for('main.password_recovery'))
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        flash('Invalid or expired token.', 'danger')
+        return redirect(url_for('main.password_recovery'))
+
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        user.password = hashed_password
+        db.session.commit()
+        flash('Your password has been updated!', 'success')
+        return redirect(url_for('main.login'))
+    
+    return render_template('reset_password.html', form=form)
+
 
 @main.route("/register", methods=["GET", "POST"])
 def register():
