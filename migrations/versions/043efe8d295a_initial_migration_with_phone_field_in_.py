@@ -51,6 +51,18 @@ def upgrade():
     )
     with op.batch_alter_table('document', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_document_vehicle_id'), ['vehicle_id'], unique=False)
+        
+def upgrade():
+    # Create log table
+    op.create_table(
+        'log',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('user_id', sa.Integer(), nullable=True),
+        sa.Column('action', sa.String(length=255), nullable=False),
+        sa.Column('timestamp', sa.DateTime(), nullable=False),
+        sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+        sa.PrimaryKeyConstraint('id')
+    )
 
     # ### end Alembic commands ###
 
@@ -63,4 +75,5 @@ def downgrade():
     op.drop_table('document')
     op.drop_table('vehicle')
     op.drop_table('user')
+    op.drop_table('log')
     # ### end Alembic commands ###

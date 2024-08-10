@@ -1,12 +1,14 @@
 from app import create_app, db
+from flask_migrate import upgrade
 
 app = create_app()
 
 with app.app_context():
-    # Drop all tables (if any)
+    # Drop all tables
     db.drop_all()
-    
-    # Recreate all tables
     db.create_all()
+
+    # Apply migrations to recreate tables
+    upgrade()
 
     print("Database has been reset and tables created successfully!")

@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, render_template, url_for, flash, redirect, request, abort, session
 from flask_login import login_user, current_user, logout_user, login_required
 from app import db, bcrypt
-from app.models import User, Vehicle, Document
+from app.models import User, Vehicle, Document, Log
 from app.forms import RegistrationForm, LoginForm, VehicleForm, DocumentForm, RenewalForm, PasswordRecoveryForm, OTPForm, ResetPasswordForm
 from app.notification_utils import send_notification 
 from sqlalchemy.exc import IntegrityError
@@ -14,6 +14,7 @@ import random
 from itsdangerous import URLSafeTimedSerializer
 from flask import current_app
 import re
+from app.utils import log_action, log_action_decorator
 
 main = Blueprint("main", __name__)
 
@@ -42,16 +43,18 @@ def home():
     return render_template("home.html", vehicles=vehicles)
 
 @main.route("/login", methods=['GET', 'POST'])
+@log_action_decorator('User attempted to log in')
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
-    
+
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if form.submit.data:  # Handle login with password
             if user and bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user, remember=True)
+                log_action(f'User {user.username} logged in with password')
                 return redirect(url_for('main.home'))
             else:
                 flash('Login unsuccessful. Please check email and password.', 'danger')
@@ -67,6 +70,7 @@ def login():
                     f"Your OTP code is {otp}"
                 )
                 flash('An OTP has been sent to your email.', 'info')
+                log_action(f'User {user.username} requested OTP for login')
                 return redirect(url_for('main.verify_otp'))
             else:
                 flash('No account found with that email.', 'danger')
@@ -82,6 +86,7 @@ def verify_otp():
             login_user(user, remember=True)
             session.pop('otp')
             session.pop('user_id')
+            log_action(f'User {user.username} logged in with OTP')
             return redirect(url_for('main.home'))
         else:
             flash('Invalid OTP. Please try again.', 'danger')
@@ -101,6 +106,7 @@ def password_recovery():
                 f"Reset your password using the following link: {recovery_link}"
             )
             flash('A password recovery link has been sent to your email.', 'info')
+            log_action(f'Password recovery email sent to {user.email}')
         else:
             flash('No account found with that email.', 'danger')
     return render_template('password_recovery.html', form=form)
@@ -123,10 +129,10 @@ def reset_password(token):
         user.password = hashed_password
         db.session.commit()
         flash('Your password has been updated!', 'success')
+        log_action(f'User {user.username} reset their password')
         return redirect(url_for('main.login'))
-    
-    return render_template('reset_password.html', form=form)
 
+    return render_template('reset_password.html', form=form)
 
 @main.route("/register", methods=["GET", "POST"])
 def register():
@@ -154,29 +160,24 @@ def logout():
     logout_user()
     return redirect(url_for("main.index"))
 
-@main.route("/vehicle/new", methods=["GET", "POST"])
+@main.route("/vehicle/new", methods=['GET', 'POST'])
 @login_required
+@log_action_decorator('User creating a new vehicle')
 def new_vehicle():
     form = VehicleForm()
     if form.validate_on_submit():
-        vehicle = Vehicle(
-            name=form.name.data,
-            vehicle_number=form.vehicle_number.data,
-            owner=current_user,
-        )
+        vehicle = Vehicle(name=form.name.data, vehicle_number=form.vehicle_number.data, owner=current_user)
         try:
             db.session.add(vehicle)
             db.session.commit()
-            flash("Your vehicle has been created!", "success")
-            return redirect(url_for("main.list_vehicles"))
+            flash('Your vehicle has been created!', 'success')
+            log_action(f'User {current_user.username} created vehicle {vehicle.name}')
+            return redirect(url_for('main.list_vehicles'))
         except IntegrityError:
             db.session.rollback()
-            flash(
-                "Vehicle number already exists. Please use a different vehicle number.",
-                "danger",
-            )
+            flash('Vehicle number already exists. Please use a different vehicle number.', 'danger')
 
-    return render_template("create_vehicle.html", form=form)
+    return render_template('create_vehicle.html', form=form)
 
 @main.route("/vehicle/<int:vehicle_id>")
 @login_required
@@ -221,8 +222,9 @@ def profile():
     vehicles = Vehicle.query.filter_by(owner=current_user).all()
     return render_template("profile.html", vehicles=vehicles)
 
-@main.route("/vehicle/<int:vehicle_id>/edit", methods=["GET", "POST"])
+@main.route("/vehicle/<int:vehicle_id>/edit", methods=['GET', 'POST'])
 @login_required
+@log_action_decorator('User editing a vehicle')
 def edit_vehicle(vehicle_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
     if vehicle.owner != current_user:
@@ -233,17 +235,19 @@ def edit_vehicle(vehicle_id):
         vehicle.name = form.name.data
         vehicle.vehicle_number = form.vehicle_number.data
         db.session.commit()
-        flash("Your vehicle has been updated!", "success")
-        return redirect(url_for("main.list_vehicles"))
+        flash('Your vehicle has been updated!', 'success')
+        log_action(f'User {current_user.username} edited vehicle {vehicle.name}')
+        return redirect(url_for('main.list_vehicles'))
 
-    elif request.method == "GET":
+    elif request.method == 'GET':
         form.name.data = vehicle.name
         form.vehicle_number.data = vehicle.vehicle_number
 
-    return render_template("edit_vehicle.html", form=form, vehicle=vehicle)
+    return render_template('edit_vehicle.html', form=form)
 
-@main.route("/vehicle/<int:vehicle_id>/delete", methods=["POST"])
+@main.route("/vehicle/<int:vehicle_id>/delete", methods=['POST'])
 @login_required
+@log_action_decorator('User deleting a vehicle')
 def delete_vehicle(vehicle_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
     if vehicle.owner != current_user:
@@ -251,8 +255,9 @@ def delete_vehicle(vehicle_id):
 
     db.session.delete(vehicle)
     db.session.commit()
-    flash("Your vehicle has been deleted!", "success")
-    return redirect(url_for("main.list_vehicles"))
+    flash('Your vehicle has been deleted!', 'success')
+    log_action(f'User {current_user.username} deleted vehicle {vehicle.name}')
+    return redirect(url_for('main.list_vehicles'))
 
 @main.route("/vehicle/<int:vehicle_id>/document/<int:document_id>/edit", methods=["GET", "POST"])
 @login_required
@@ -400,3 +405,11 @@ def notify_user(document):
                 f"expires on {document.end_date.strftime('%Y-%m-%d')}. Renew: {renewal_link}"
             )
             send_sms(user.phone, sms_body)
+            
+            
+@main.route("/logs")
+@login_required  # Ensure only logged-in users can see this
+def view_logs():
+    logs = Log.query.order_by(Log.timestamp.desc()).all()
+    return render_template('view_logs.html', logs=logs)
+            
