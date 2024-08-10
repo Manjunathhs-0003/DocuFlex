@@ -13,7 +13,7 @@
 
 <h2>Current Progress</h2>
     <p>
-        So far, user authentication, vehicle management, and document management features have been implemented. Email notifications are set up to alert users 10 days before document expiration. A scheduler (APScheduler) runs daily to check for expiring documents and send reminders. Finished with mail and sms services. working on renewal window.
+        So far, user authentication, vehicle management, and document management features have been implemented. Email notifications are set up to alert users 10 days before document expiration. A scheduler (APScheduler) runs daily to check for expiring documents and send reminders. Finished till Logging!!!
     </p>
     <p>Contributions are WELCOME!!</p>
 
