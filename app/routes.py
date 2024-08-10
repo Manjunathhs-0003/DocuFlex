@@ -289,8 +289,9 @@ def renew_document(document_id):
 def notify_user(document):
     user = document.vehicle.owner
     expiration_alert_period = timedelta(days=30)  # Notify 30 days before expiration
+    current_time = datetime.utcnow()
 
-    if document.end_date - datetime.utcnow() <= expiration_alert_period:
+    if 0 <= (document.end_date - current_time).days <= 30:  # Only notify for valid upcoming expirations
         subject = f'Document Expiry Notification for {document.document_type}'
         recipients = [user.email]
         renewal_link = url_for("main.renew_document", document_id=document.id, _external=True)
