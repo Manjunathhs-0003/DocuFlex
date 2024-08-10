@@ -3,11 +3,12 @@ from flask import Blueprint, render_template, url_for, flash, redirect, request,
 from flask_login import login_user, current_user, logout_user, login_required
 from app import db, bcrypt
 from app.models import User, Vehicle, Document
-from app.forms import RegistrationForm, LoginForm, VehicleForm, DocumentForm
-from app.email_utils import send_notification  # Import the send_notification function
+from app.forms import RegistrationForm, LoginForm, VehicleForm, DocumentForm, RenewalForm
+from app.notification_utils import send_notification  # Import the send_notification function
 from sqlalchemy.exc import IntegrityError
 import logging
 from twilio.rest import Client
+from app.notification_utils import send_email, send_sms
 import os
 
 main = Blueprint("main", __name__)
@@ -262,3 +263,53 @@ def notify_user(document):
         logging.info(f"Notification sent successfully to email: {user.email}")
     else:
         logging.info(f"Document {document.document_type} is not expiring soon.")
+        
+        
+@main.route("/document/<int:document_id>/renew", methods=['GET', 'POST'])
+@login_required
+def renew_document(document_id):
+    document = Document.query.get_or_404(document_id)
+    if document.vehicle.owner != current_user:
+        abort(403)
+
+    form = RenewalForm()
+    if form.validate_on_submit():
+        document.start_date = form.start_date.data
+        document.end_date = form.end_date.data
+        db.session.commit()
+        flash('Your document has been renewed!', 'success')
+        return redirect(url_for('main.vehicle', vehicle_id=document.vehicle_id))
+
+    elif request.method == 'GET':
+        form.start_date.data = document.start_date
+        form.end_date.data = document.end_date
+
+    return render_template('renew_document.html', form=form, document=document)
+
+def notify_user(document):
+    user = document.vehicle.owner
+    expiration_alert_period = timedelta(days=30)  # Notify 30 days before expiration
+
+    if document.end_date - datetime.utcnow() <= expiration_alert_period:
+        subject = f'Document Expiry Notification for {document.document_type}'
+        recipients = [user.email]
+        renewal_link = url_for("main.renew_document", document_id=document.id, _external=True)
+        body = (
+            f"Dear {user.username},\n\n"
+            f"This is a reminder that your {document.document_type} document for vehicle {document.vehicle.name} "
+            f"({document.vehicle.vehicle_number}) is set to expire on {document.end_date.strftime('%Y-%m-%d')}.\n"
+            f"You can renew it here: {renewal_link}\n\n"
+            f"Vehicle Details:\n"
+            f"Name: {document.vehicle.name}\n"
+            f"Number: {document.vehicle.vehicle_number}\n\n"
+            f"Best regards,\n"
+            f"Fleet Management Team"
+        )
+        send_email(subject, recipients, body)
+
+        if user.phone:
+            sms_body = (
+                f"Reminder: Your {document.document_type} for vehicle {document.vehicle.name} ({document.vehicle.vehicle_number}) "
+                f"expires on {document.end_date.strftime('%Y-%m-%d')}. Renew: {renewal_link}"
+            )
+            send_sms(user.phone, sms_body)

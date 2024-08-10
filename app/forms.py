@@ -79,3 +79,9 @@ class DocumentForm(FlaskForm):
     start_date = DateField("Start Date", format="%Y-%m-%d", validators=[DataRequired()])
     end_date = DateField("End Date", format="%Y-%m-%d", validators=[DataRequired()])
     submit = SubmitField("Add Document")
+    
+    
+class RenewalForm(FlaskForm):
+    start_date = DateField('New Start Date', format='%Y-%m-%d', validators=[DataRequired()])
+    end_date = DateField('New End Date', format='%Y-%m-%d', validators=[DataRequired()])
+    submit = SubmitField('Renew Document')
