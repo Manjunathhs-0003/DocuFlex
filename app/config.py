@@ -1,10 +1,4 @@
 import os
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-basedir = os.path.abspath(os.path.dirname(__file__))
-load_dotenv(os.path.join(basedir, ".env"))
-
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY") or "Forget-and-Forgive"
@@ -17,6 +11,9 @@ class Config:
     MAIL_USERNAME = os.environ.get("EMAIL_USER")
     MAIL_PASSWORD = os.environ.get("EMAIL_PASS")
     MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER")
-    SECURITY_PASSWORD_SALT = (
-        os.environ.get("SECURITY_PASSWORD_SALT") or "forgive-and-forget"
-    )
+
+    TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
+    TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
+    TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER')
+
+    SECURITY_PASSWORD_SALT = os.environ.get("SECURITY_PASSWORD_SALT") or "this-is-my-salt"

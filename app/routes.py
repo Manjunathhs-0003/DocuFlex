@@ -8,6 +8,7 @@ from flask import (
     request,
     abort,
     session,
+    current_app,
 )
 from flask_login import login_user, current_user, logout_user, login_required
 from app import db, bcrypt
@@ -22,36 +23,27 @@ from app.forms import (
     OTPForm,
     ResetPasswordForm,
 )
-from app.notification_utils import send_notification
+import os
+from app.notification_utils import send_notification, send_email, send_sms
 from sqlalchemy.exc import IntegrityError
 import logging
-from twilio.rest import Client
-from app.notification_utils import send_email, send_sms
-import os
+from app.utils import log_action, log_action_decorator
 import random
 from itsdangerous import URLSafeTimedSerializer
-from flask import current_app
-import re
-from app.utils import log_action, log_action_decorator
 
 main = Blueprint("main", __name__)
-
 
 def generate_recovery_token(user_email):
     s = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
     return s.dumps(user_email, salt=current_app.config["SECURITY_PASSWORD_SALT"])
 
-
 def verify_recovery_token(token, expiration=3600):
     s = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
     try:
-        email = s.loads(
-            token, salt=current_app.config["SECURITY_PASSWORD_SALT"], max_age=expiration
-        )
+        email = s.loads(token, salt=current_app.config["SECURITY_PASSWORD_SALT"], max_age=expiration)
     except:
         return False
     return email
-
 
 @main.route("/")
 def index():
@@ -59,13 +51,11 @@ def index():
         return redirect(url_for("main.home"))
     return render_template("mcm.html")
 
-
 @main.route("/home")
 @login_required
 def home():
     vehicles = Vehicle.query.filter_by(owner=current_user).all()
     return render_template("home.html", vehicles=vehicles)
-
 
 @main.route("/login", methods=["GET", "POST"])
 @log_action_decorator("User attempted to log in")
@@ -100,7 +90,6 @@ def login():
 
     return render_template("login.html", form=form)
 
-
 @main.route("/verify_otp", methods=["GET", "POST"])
 def verify_otp():
     form = OTPForm()
@@ -115,7 +104,6 @@ def verify_otp():
         else:
             flash("Invalid OTP. Please try again.", "danger")
     return render_template("verify_otp.html", form=form)
-
 
 @main.route("/password_recovery", methods=["GET", "POST"])
 def password_recovery():
@@ -136,8 +124,8 @@ def password_recovery():
             flash("No account found with that email.", "danger")
     return render_template("password_recovery.html", form=form)
 
-
 @main.route("/reset_password/<token>", methods=["GET", "POST"])
+@log_action_decorator("User attempted to reset password")
 def reset_password(token):
     email = verify_recovery_token(token)
     if not email:
@@ -162,7 +150,6 @@ def reset_password(token):
 
     return render_template("reset_password.html", form=form)
 
-
 @main.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
@@ -176,22 +163,25 @@ def register():
         user = User(
             username=form.username.data,
             email=form.email.data,
-            phone=form.phone.data,  # Ensure proper field capture as +91 re-prefixed
+            phone=form.phone.data,
             password=hashed_password,
         )
         db.session.add(user)
         db.session.commit()
+        send_notification(
+            "Welcome to MCM!",
+            [user.email],
+            f"Dear {user.username},\n\nWelcome to Fleet Management! We're excited to have you onboard.\n\nBest regards,\nFleet Management Team"
+        )
         flash("Your account has been created! You are now able to log in.", "success")
         return redirect(url_for("main.login"))
 
     return render_template("register.html", form=form)
 
-
 @main.route("/logout")
 def logout():
     logout_user()
     return redirect(url_for("main.index"))
-
 
 @main.route("/vehicle/new", methods=["GET", "POST"])
 @login_required
@@ -208,6 +198,11 @@ def new_vehicle():
             db.session.add(vehicle)
             db.session.commit()
             flash("Your vehicle has been created!", "success")
+            # send_notification(
+            #     subject="New Vehicle Added!",
+            #     recipients=[current_user.email],
+            #     body=f"Dear {current_user.username},\n\nYou have successfully added a new vehicle: {vehicle.name} ({vehicle.vehicle_number}).\n\nBest regards,\nFleet Management Team"
+            # )
             log_action(f"User {current_user.username} created vehicle {vehicle.name}")
             return redirect(url_for("main.list_vehicles"))
         except IntegrityError:
@@ -219,7 +214,6 @@ def new_vehicle():
 
     return render_template("create_vehicle.html", form=form)
 
-
 @main.route("/vehicle/<int:vehicle_id>")
 @login_required
 def vehicle(vehicle_id):
@@ -228,9 +222,9 @@ def vehicle(vehicle_id):
         abort(403)
     return render_template("vehicle.html", vehicle=vehicle)
 
-
 @main.route("/vehicle/<int:vehicle_id>/document/new", methods=["GET", "POST"])
 @login_required
+@log_action_decorator("User creating a new document")
 def new_document(vehicle_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
     form = DocumentForm()
@@ -245,13 +239,18 @@ def new_document(vehicle_id):
         db.session.add(document)
         db.session.commit()
 
-        # Send email notification
-        notify_user(document)
+        # # Send email notification
+        # notify_user(document)
+        # send_notification(
+        #     subject="New Document Added!",
+        #     recipients=[current_user.email],
+        #     body=f"Dear {current_user.username},\n\nYou have successfully added a new document ({document.document_type}) for vehicle {vehicle.name} ({vehicle.vehicle_number}).\n\nBest regards,\nMCM"
+        # )
 
         flash("Your document has been created!", "success")
+        log_action(f"User {current_user.username} created document {document.document_type} for vehicle {vehicle.name}")
         return redirect(url_for("main.vehicle", vehicle_id=vehicle.id))
     return render_template("create_document.html", form=form, vehicle=vehicle)
-
 
 @main.route("/vehicles")
 @login_required
@@ -259,13 +258,11 @@ def list_vehicles():
     vehicles = Vehicle.query.filter_by(owner=current_user).all()
     return render_template("list_vehicles.html", vehicles=vehicles)
 
-
 @main.route("/profile")
 @login_required
 def profile():
     vehicles = Vehicle.query.filter_by(owner=current_user).all()
     return render_template("profile.html", vehicles=vehicles)
-
 
 @main.route("/vehicle/<int:vehicle_id>/edit", methods=["GET", "POST"])
 @login_required
@@ -290,7 +287,6 @@ def edit_vehicle(vehicle_id):
 
     return render_template("edit_vehicle.html", form=form)
 
-
 @main.route("/vehicle/<int:vehicle_id>/delete", methods=["POST"])
 @login_required
 @log_action_decorator("User deleting a vehicle")
@@ -305,11 +301,9 @@ def delete_vehicle(vehicle_id):
     log_action(f"User {current_user.username} deleted vehicle {vehicle.name}")
     return redirect(url_for("main.list_vehicles"))
 
-
-@main.route(
-    "/vehicle/<int:vehicle_id>/document/<int:document_id>/edit", methods=["GET", "POST"]
-)
+@main.route("/vehicle/<int:vehicle_id>/document/<int:document_id>/edit", methods=["GET", "POST"])
 @login_required
+@log_action_decorator("User editing a document")
 def edit_document(vehicle_id, document_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
     document = Document.query.get_or_404(document_id)
@@ -324,6 +318,7 @@ def edit_document(vehicle_id, document_id):
         document.end_date = form.end_date.data
         db.session.commit()
         flash("Your document has been updated!", "success")
+        log_action(f"User {current_user.username} edited document {document.document_type} for vehicle {vehicle.name}")
         return redirect(url_for("main.vehicle", vehicle_id=vehicle.id))
     elif request.method == "GET":
         form.document_type.data = document.document_type
@@ -331,15 +326,11 @@ def edit_document(vehicle_id, document_id):
         form.start_date.data = document.start_date
         form.end_date.data = document.end_date
 
-    return render_template(
-        "edit_document.html", form=form, vehicle=vehicle, document=document
-    )
+    return render_template("edit_document.html", form=form, vehicle=vehicle, document=document)
 
-
-@main.route(
-    "/vehicle/<int:vehicle_id>/document/<int:document_id>/delete", methods=["POST"]
-)
+@main.route("/vehicle/<int:vehicle_id>/document/<int:document_id>/delete", methods=["POST"])
 @login_required
+@log_action_decorator("User deleting a document")
 def delete_document(vehicle_id, document_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
     document = Document.query.get_or_404(document_id)
@@ -348,67 +339,12 @@ def delete_document(vehicle_id, document_id):
     db.session.delete(document)
     db.session.commit()
     flash("Your document has been deleted!", "success")
+    log_action(f"User {current_user.username} deleted document {document.document_type} for vehicle {vehicle.name}")
     return redirect(url_for("main.vehicle", vehicle_id=vehicle.id))
-
-
-# Setup basic logging configuration
-logging.basicConfig(level=logging.INFO)
-
-
-def send_sms(to, body):
-    account_sid = os.environ.get("TWILIO_ACCOUNT_SID")
-    auth_token = os.environ.get("TWILIO_AUTH_TOKEN")
-    twilio_phone_number = os.environ.get("TWILIO_PHONE_NUMBER")
-
-    client = Client(account_sid, auth_token)
-    message = client.messages.create(body=body, from_=twilio_phone_number, to=to)
-
-    logging.info(f"SMS sent successfully to {to}")
-
-
-# notify_user function example
-def notify_user(document):
-    user = document.vehicle.owner
-    expiration_alert_period = timedelta(days=10)  # Notify 10 days before expiration
-
-    logging.info("Checking document expiration for notification.")
-
-    if document.end_date - datetime.utcnow() <= expiration_alert_period:
-        logging.info(f"Document {document.document_type} expiring soon.")
-        subject = f"Document Expiry Notification for {document.document_type}"
-        recipients = [user.email]
-
-        # Improved message format
-        body = (
-            f"Dear {user.username},\n\n"
-            f"This is a reminder from Manjunatha Cargo Movers.\n\n"
-            f"Your {document.document_type} document for vehicle {document.vehicle.name} "
-            f"(Vehicle Number: {document.vehicle.vehicle_number}) is set to expire on {document.end_date.strftime('%Y-%m-%d')}.\n\n"
-            f"Document Serial Number: {document.serial_number}\n\n"
-            f"Please take the necessary actions to renew it in time.\n\n"
-            f"Thank you!\n\n"
-            f"Manjunatha Cargo Movers"
-        )
-
-        # Send email notification
-        send_notification(subject, recipients, body)
-
-        # Send SMS notification
-        sms_body = (
-            f"Dear {user.username}, "
-            f"Your {document.document_type} for vehicle {document.vehicle.name} "
-            f"(Vehicle Number: {document.vehicle.vehicle_number}) expires on {document.end_date.strftime('%Y-%m-%d')}. "
-            f"Serial: {document.serial_number}. Please renew it in time. Manjunatha Cargo Movers"
-        )
-        send_sms(user.phone, sms_body)
-
-        logging.info(f"Notification sent successfully to email: {user.email}")
-    else:
-        logging.info(f"Document {document.document_type} is not expiring soon.")
-
 
 @main.route("/document/<int:document_id>/renew", methods=["GET", "POST"])
 @login_required
+@log_action_decorator("User renewing a document")
 def renew_document(document_id):
     document = Document.query.get_or_404(document_id)
     if document.vehicle.owner != current_user:
@@ -418,8 +354,10 @@ def renew_document(document_id):
     if form.validate_on_submit():
         document.start_date = form.start_date.data
         document.end_date = form.end_date.data
+        document.notified = False  # Reset notifications
         db.session.commit()
         flash("Your document has been renewed!", "success")
+        log_action(f"User {current_user.username} renewed document {document.document_type} for vehicle {document.vehicle.name}")
         return redirect(url_for("main.vehicle", vehicle_id=document.vehicle_id))
 
     elif request.method == "GET":
@@ -428,20 +366,15 @@ def renew_document(document_id):
 
     return render_template("renew_document.html", form=form, document=document)
 
-
 def notify_user(document):
     user = document.vehicle.owner
-    expiration_alert_period = timedelta(days=30)  # Notify 30 days before expiration
     current_time = datetime.utcnow()
+    days_until_expiration = (document.end_date - current_time).days
 
-    if (
-        0 <= (document.end_date - current_time).days <= 30
-    ):  # Only notify for valid upcoming expirations
-        subject = f"Document Expiry Notification for {document.document_type}"
+    if (0 < days_until_expiration <= 10 and days_until_expiration % 5 == 0) or days_until_expiration == 1:
+        subject = f'Document Expiry Notification for {document.document_type}'
         recipients = [user.email]
-        renewal_link = url_for(
-            "main.renew_document", document_id=document.id, _external=True
-        )
+        renewal_link = url_for("main.renew_document", document_id=document.id, _external=True)
         body = (
             f"Dear {user.username},\n\n"
             f"This is a reminder that your {document.document_type} document for vehicle {document.vehicle.name} "
@@ -455,13 +388,12 @@ def notify_user(document):
         )
         send_email(subject, recipients, body)
 
-        if user.phone:
-            sms_body = (
-                f"Reminder: Your {document.document_type} for vehicle {document.vehicle.name} ({document.vehicle.vehicle_number}) "
-                f"expires on {document.end_date.strftime('%Y-%m-%d')}. Renew: {renewal_link}"
-            )
-            send_sms(user.phone, sms_body)
-
+    if 0 < days_until_expiration <= 10:
+        sms_body = (
+            f"Reminder: Your {document.document_type} for vehicle {document.vehicle.name} ({document.vehicle.vehicle_number}) "
+            f"expires on {document.end_date.strftime('%Y-%m-%d')}. Renew: {url_for('main.renew_document', document_id=document.id, _external=True)}"
+        )
+        send_sms(user.phone, sms_body)
 
 @main.route("/logs")
 @login_required  # Ensure only logged-in users can see this
