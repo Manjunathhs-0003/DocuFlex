@@ -4,9 +4,11 @@ from app import mail
 from flask import current_app
 
 
-def send_notification(subject, recipients, body):
-    msg = Message(subject, recipients=recipients)
-    msg.body = body
+def send_notification(subject, recipients, body, sender=None):
+    sender_email = sender or current_app.config.get('MAIL_DEFAULT_SENDER')
+    if not sender_email:
+        raise ValueError("No sender email is defined.")
+    msg = Message(subject, recipients=recipients, body=body, sender=sender_email)
     mail.send(msg)
 
 

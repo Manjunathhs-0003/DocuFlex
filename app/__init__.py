@@ -1,4 +1,3 @@
-# app/__init__.py
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -8,13 +7,16 @@ from flask_migrate import Migrate
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 from app.config import Config
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 login_manager = LoginManager()
 mail = Mail()
 migrate = Migrate()
-
 
 def check_document_expirations():
     app = create_app()
@@ -27,7 +29,6 @@ def check_document_expirations():
         for document in documents:
             if 0 <= (document.end_date - current_time).days <= 10:
                 notify_user(document)
-
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -49,9 +50,8 @@ def create_app(config_class=Config):
         return User.query.get(int(user_id))
 
     from app.routes import main as main_blueprint
-
     app.register_blueprint(main_blueprint)
-
+    
     # Initialize and start the scheduler
     scheduler = BackgroundScheduler()
     scheduler.add_job(check_document_expirations, "interval", hours=24)
