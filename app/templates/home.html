@@ -20,7 +20,7 @@
                 </div>
                 <div class="card-body">
                     <p class="card-text">Owner: {{ vehicle.owner.username }}</p>
-                    <a href="{{ url_for('main.vehicle', vehicle_id=vehicle.id) }}" class="btn btn-info btn-sm">View</a>
+                    <a href="{{ url_for('main.view_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-info btn-sm">View</a>
                     <a href="{{ url_for('main.edit_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-warning btn-sm">Edit</a>
                     <form action="{{ url_for('main.delete_vehicle', vehicle_id=vehicle.id) }}" method="POST" class="d-inline">
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
@@ -41,7 +41,7 @@
                         </li>
                         {% endfor %}
                     </ul>
-                    <a href="{{ url_for('main.new_document', vehicle_id=vehicle.id) }}" class="btn btn-primary btn-sm mt-3">Add New Document</a>
+                    <a href="{{ url_for('main.add_document', vehicle_id=vehicle.id) }}" class="btn btn-primary btn-sm mt-3">Add New Document</a>
                 </div>
             </div>
         </div>

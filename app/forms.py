@@ -7,8 +7,9 @@ from wtforms import (
     SelectField,
     DateField,
     IntegerField,
+    FloatField,
 )
-from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Regexp
+from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Regexp, Optional
 from app.models import User, Vehicle
 
 
@@ -107,10 +108,35 @@ class DocumentForm(FlaskForm):
         ],
         validators=[DataRequired()],
     )
-    serial_number = StringField("Serial Number", validators=[DataRequired()])
-    start_date = DateField("Start Date", format="%Y-%m-%d", validators=[DataRequired()])
-    end_date = DateField("End Date", format="%Y-%m-%d", validators=[DataRequired()])
+    serial_number = StringField("Serial Number", validators=[Optional()])
+    start_date = DateField("Start Date", format="%Y-%m-%d", validators=[Optional()])
+    end_date = DateField("End Date", format="%Y-%m-%d", validators=[Optional()])
+    insurance_policy_number = StringField("Policy Number", validators=[Optional()])
+    insurance_company_name = StringField("Insurance Company Name", validators=[Optional()])
+    policy_start_date = DateField("Policy Start Date", format="%Y-%m-%d", validators=[Optional()])
+    policy_expiry_date = DateField("Policy Expiry Date", format="%Y-%m-%d", validators=[Optional()])
+    policy_coverage_amount = FloatField("Policy Coverage Amount", validators=[Optional()])
     submit = SubmitField("Add Document")
+    
+    def update_fields(self, document_type):
+        if document_type == 'Insurance':
+            self.serial_number.validators = [Optional()]
+            self.start_date.validators = [Optional()]
+            self.end_date.validators = [Optional()]
+            self.insurance_policy_number.validators = [DataRequired(), Regexp(r'^\d{16}$', message="Policy number must be 16 digits.")]
+            self.insurance_company_name.validators = [DataRequired()]
+            self.policy_start_date.validators = [DataRequired()]
+            self.policy_expiry_date.validators = [DataRequired()]
+            self.policy_coverage_amount.validators = [DataRequired()]
+        else:
+            self.serial_number.validators = [DataRequired()]
+            self.start_date.validators = [DataRequired()]
+            self.end_date.validators = [DataRequired()]
+            self.insurance_policy_number.validators = [Optional()]
+            self.insurance_company_name.validators = [Optional()]
+            self.policy_start_date.validators = [Optional()]
+            self.policy_expiry_date.validators = [Optional()]
+            self.policy_coverage_amount.validators = [Optional()]
 
 
 class RenewalForm(FlaskForm):

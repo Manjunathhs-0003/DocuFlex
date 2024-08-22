@@ -9,23 +9,67 @@
         {{ form.hidden_tag() }}
         <div class="form-group">
             {{ form.document_type.label(class="form-label") }}<br>
-            {{ form.document_type(class="form-control") }}
+            {{ form.document_type(class="form-control", id="document_type") }}
         </div>
-        <div class="form-group">
-            {{ form.serial_number.label(class="form-label") }}<br>
-            {{ form.serial_number(class="form-control") }}
+        <div id="common-fields">
+            <div class="form-group">
+                {{ form.serial_number.label(class="form-label") }}<br>
+                {{ form.serial_number(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.start_date.label(class="form-label") }}<br>
+                {{ form.start_date(class="form-control", type="date") }}
+            </div>
+            <div class="form-group">
+                {{ form.end_date.label(class="form-label") }}<br>
+                {{ form.end_date(class="form-control", type="date") }}
+            </div>
         </div>
-        <div class="form-group">
-            {{ form.start_date.label(class="form-label") }}<br>
-            {{ form.start_date(class="form-control", type="date") }}
-        </div>
-        <div class="form-group">
-            {{ form.end_date.label(class="form-label") }}<br>
-            {{ form.end_date(class="form-control", type="date") }}
+        <div id="insurance-fields" style="display:none;">
+            <div class="form-group">
+                {{ form.insurance_policy_number.label(class="form-label") }}<br>
+                {{ form.insurance_policy_number(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.insurance_company_name.label(class="form-label") }}<br>
+                {{ form.insurance_company_name(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.policy_start_date.label(class="form-label") }}<br>
+                {{ form.policy_start_date(class="form-control", type="date") }}
+            </div>
+            <div class="form-group">
+                {{ form.policy_expiry_date.label(class="form-label") }}<br>
+                {{ form.policy_expiry_date(class="form-control", type="date") }}
+            </div>
+            <div class="form-group">
+                {{ form.policy_coverage_amount.label(class="form-label") }}<br>
+                {{ form.policy_coverage_amount(class="form-control") }}
+            </div>
         </div>
         <div class="form-group">
             {{ form.submit(class="btn btn-primary") }}
         </div>
     </form>
 </div>
+
+<!-- JavaScript to toggle fields based on document type -->
+<script>
+    document.getElementById('document_type').onchange = function() {
+        var docType = this.value;
+        var commonFields = document.getElementById('common-fields');
+        var insuranceFields = document.getElementById('insurance-fields');
+
+        if (docType === 'Insurance') {
+            commonFields.style.display = 'none';
+            insuranceFields.style.display = 'block';
+        } else {
+            commonFields.style.display = 'block';
+            insuranceFields.style.display = 'none';
+        }
+    };
+
+    // Trigger change event to set the correct initial state
+    document.getElementById('document_type').onchange();
+</script>
 {% endblock %}
