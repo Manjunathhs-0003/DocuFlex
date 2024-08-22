@@ -61,6 +61,24 @@
                 {{ form.emission_end_date(class="form-control", type="date") }}
             </div>
         </div>
+        <div id="permit-fields" style="display:none;">
+            <div class="form-group">
+                {{ form.permit_number.label(class="form-label") }}<br>
+                {{ form.permit_number(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.issuing_authority.label(class="form-label") }}<br>
+                {{ form.issuing_authority(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.permit_start_date.label(class="form-label") }}<br>
+                {{ form.permit_start_date(class="form-control", type="date") }}
+            </div>
+            <div class="form-group">
+                {{ form.permit_end_date.label(class="form-label") }}<br>
+                {{ form.permit_end_date(class="form-control", type="date") }}
+            </div>
+        </div>
         <div class="form-group">
             {{ form.submit(class="btn btn-primary") }}
         </div>
@@ -74,19 +92,28 @@
         var commonFields = document.getElementById('common-fields');
         var insuranceFields = document.getElementById('insurance-fields');
         var emissionFields = document.getElementById('emission-fields');
+        var permitFields = document.getElementById('permit-fields');
 
         if (docType === 'Insurance') {
             commonFields.style.display = 'none';
             insuranceFields.style.display = 'block';
             emissionFields.style.display = 'none';
+            permitFields.style.display = 'none';
         } else if(docType === 'Emission Certificate') {
             commonFields.style.display = 'none';
             insuranceFields.style.display = 'none';
             emissionFields.style.display = 'block';
+            permitFields.style.display = 'none';
+        } else if(docType === 'Permit') {
+            commonFields.style.display = 'none';
+            insuranceFields.style.display = 'none';
+            emissionFields.style.display = 'none';
+            permitFields.style.display = 'block';
         } else {
             commonFields.style.display = 'block';
             insuranceFields.style.display = 'none';
             emissionFields.style.display = 'none';
+            permitFields.style.display = 'none';
         }
     };
 

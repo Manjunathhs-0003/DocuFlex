@@ -265,6 +265,15 @@ def add_document(vehicle_id):
                 end_date=form.emission_end_date.data,
                 vehicle=vehicle,
             )
+        elif form.document_type.data == "Permit":
+            document = Document(
+                document_type=form.document_type.data,
+                serial_number=form.permit_number.data,
+                start_date=form.permit_start_date.data,
+                end_date=form.permit_end_date.data,
+                additional_info={"issuing_authority": form.issuing_authority.data},
+                vehicle=vehicle,
+            )
         else:
             document = Document(
                 document_type=form.document_type.data,
