@@ -249,7 +249,7 @@ def add_document(vehicle_id):
     form = DocumentForm()
     if form.validate_on_submit():
         form.update_fields(form.document_type.data)
-        if form.document_type.data == 'Insurance':
+        if form.document_type.data == "Insurance":
             document = Document(
                 document_type=form.document_type.data,
                 serial_number=form.insurance_policy_number.data,
@@ -257,7 +257,14 @@ def add_document(vehicle_id):
                 end_date=form.policy_expiry_date.data,
                 vehicle=vehicle,
             )
-            # Save additional fields if necessary
+        elif form.document_type.data == "Emission Certificate":
+            document = Document(
+                document_type=form.document_type.data,
+                serial_number=form.emission_certificate_number.data,
+                start_date=form.emission_start_date.data,
+                end_date=form.emission_end_date.data,
+                vehicle=vehicle,
+            )
         else:
             document = Document(
                 document_type=form.document_type.data,
@@ -266,13 +273,11 @@ def add_document(vehicle_id):
                 end_date=form.end_date.data,
                 vehicle=vehicle,
             )
-            
+
         db.session.add(document)
         db.session.commit()
 
-        # Send email notification
         notify_user(document)
-
         flash("Your document has been created!", "success")
         return redirect(url_for("main.view_vehicle", vehicle_id=vehicle.id))
     return render_template("create_document.html", form=form, vehicle=vehicle)

@@ -1,25 +1,26 @@
 {% extends "layout.html" %}
 
-{% block title %}{{ vehicle.name }} - Vehicle Details{% endblock %}
+{% block title %}Vehicle - Fleet Management{% endblock %}
 
 {% block main %}
 <div class="container">
     <h1 class="mt-4">{{ vehicle.name }}</h1>
     <p>Vehicle Number: {{ vehicle.vehicle_number }}</p>
+    <p>Owner: {{ vehicle.owner.username }}</p>
     <h2 class="mt-4">Documents</h2>
     <ul class="list-group">
         {% for document in vehicle.documents %}
         <li class="list-group-item d-flex justify-content-between align-items-center">
-            {{ document.document_type }} - Serial Number: {{ document.serial_number }}
-            <div>
+            {{ document.document_type }} - Expires: {{ document.end_date.strftime('%Y-%m-%d') }}
+            <span>
                 <a href="{{ url_for('main.edit_document', vehicle_id=vehicle.id, document_id=document.id) }}" class="btn btn-warning btn-sm">Edit</a>
-                <form method="POST" action="{{ url_for('main.delete_document', vehicle_id=vehicle.id, document_id=document.id) }}" class="d-inline">
+                <form action="{{ url_for('main.delete_document', vehicle_id=vehicle.id, document_id=document.id) }}" method="POST" class="d-inline">
                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                 </form>
-            </div>
+            </span>
         </li>
         {% endfor %}
     </ul>
-    <a href="{{ url_for('main.new_document', vehicle_id=vehicle.id) }}" class="btn btn-primary mt-3">Add New Document</a>
+    <a href="{{ url_for('main.add_document', vehicle_id=vehicle.id) }}" class="btn btn-primary mt-3">Add New Document</a>
 </div>
 {% endblock %}

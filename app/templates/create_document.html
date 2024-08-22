@@ -47,6 +47,20 @@
                 {{ form.policy_coverage_amount(class="form-control") }}
             </div>
         </div>
+        <div id="emission-fields" style="display:none;">
+            <div class="form-group">
+                {{ form.emission_certificate_number.label(class="form-label") }}<br>
+                {{ form.emission_certificate_number(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.emission_start_date.label(class="form-label") }}<br>
+                {{ form.emission_start_date(class="form-control", type="date") }}
+            </div>
+            <div class="form-group">
+                {{ form.emission_end_date.label(class="form-label") }}<br>
+                {{ form.emission_end_date(class="form-control", type="date") }}
+            </div>
+        </div>
         <div class="form-group">
             {{ form.submit(class="btn btn-primary") }}
         </div>
@@ -59,13 +73,20 @@
         var docType = this.value;
         var commonFields = document.getElementById('common-fields');
         var insuranceFields = document.getElementById('insurance-fields');
+        var emissionFields = document.getElementById('emission-fields');
 
         if (docType === 'Insurance') {
             commonFields.style.display = 'none';
             insuranceFields.style.display = 'block';
+            emissionFields.style.display = 'none';
+        } else if(docType === 'Emission Certificate') {
+            commonFields.style.display = 'none';
+            insuranceFields.style.display = 'none';
+            emissionFields.style.display = 'block';
         } else {
             commonFields.style.display = 'block';
             insuranceFields.style.display = 'none';
+            emissionFields.style.display = 'none';
         }
     };
 
