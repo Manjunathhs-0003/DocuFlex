@@ -10,6 +10,7 @@ from flask import (
     session,
 )
 import json
+from app.forms import OTPDeletionForm 
 from flask_login import login_user, current_user, logout_user, login_required
 from app import db, bcrypt
 from app.models import User, Vehicle, Document, Log
@@ -357,7 +358,7 @@ def edit_vehicle(vehicle_id):
 def delete_vehicle(vehicle_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
     if vehicle.owner != current_user:
-        abort(403)
+        abort(403)  # Forbid deletion if not the owner
 
     db.session.delete(vehicle)
     db.session.commit()
@@ -439,6 +440,83 @@ def renew_document(document_id):
 def view_logs():
     logs = Log.query.order_by(Log.timestamp.desc()).all()
     return render_template("view_logs.html", logs=logs)
+
+@main.route("/send_delete_otp/<int:vehicle_id>", methods=["POST"])
+@login_required
+def send_delete_otp(vehicle_id):
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+    if vehicle.owner != current_user:
+        abort(403)
+
+    otp = random.randint(100000, 999999)
+    session["delete_otp"] = otp
+    session["delete_vehicle_id"] = vehicle_id
+    send_notification("Your OTP Code for Deletion", [current_user.email], f"Your OTP code is {otp}")
+
+    flash("An OTP for deletion has been sent to your email.", "info")
+    return redirect(url_for("main.verify_delete_otp", vehicle_id=vehicle_id))
+
+@main.route("/verify_delete_otp/<int:vehicle_id>", methods=["GET", "POST"])
+@login_required
+def verify_delete_otp(vehicle_id):
+    form = OTPDeletionForm()
+    if form.validate_on_submit():
+        if "delete_otp" in session and form.otp.data == session["delete_otp"] and "delete_vehicle_id" in session and session["delete_vehicle_id"] == vehicle_id:
+            session.pop("delete_otp")
+            session.pop("delete_vehicle_id")
+            
+            vehicle = Vehicle.query.get_or_404(vehicle_id)
+            if vehicle.owner != current_user:
+                abort(403)
+                
+            db.session.delete(vehicle)
+            db.session.commit()
+            flash("Your vehicle has been deleted!", "success")
+            log_action(f"User {current_user.username} deleted vehicle {vehicle.name}")
+            return redirect(url_for("main.list_vehicles"))
+
+        flash("Invalid OTP. Please try again.", "danger")
+    return render_template("verify_delete_otp.html", form=form)
+
+@main.route("/send_delete_document_otp/<int:vehicle_id>/<int:document_id>", methods=["POST"])
+@login_required
+def send_delete_document_otp(vehicle_id, document_id):
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+    document = Document.query.get_or_404(document_id)
+    if vehicle.owner != current_user or document.vehicle_id != vehicle.id:
+        abort(403)
+
+    otp = random.randint(100000, 999999)
+    session["delete_document_otp"] = otp
+    session["delete_document_id"] = document_id
+    session["delete_vehicle_id"] = vehicle_id
+    send_notification("Your OTP Code for Deletion", [current_user.email], f"Your OTP code is {otp}")
+
+    flash("An OTP for deletion has been sent to your email.", "info")
+    return redirect(url_for("main.verify_delete_document_otp", vehicle_id=vehicle_id, document_id=document_id))
+
+@main.route("/verify_delete_document_otp/<int:vehicle_id>/<int:document_id>", methods=["GET", "POST"])
+@login_required
+def verify_delete_document_otp(vehicle_id, document_id):
+    form = OTPDeletionForm()
+    if form.validate_on_submit():
+        if "delete_document_otp" in session and form.otp.data == session["delete_document_otp"] and "delete_document_id" in session and session["delete_document_id"] == document_id:
+            session.pop("delete_document_otp")
+            session.pop("delete_document_id")
+            session.pop("delete_vehicle_id")
+            
+            document = Document.query.get_or_404(document_id)
+            if document.vehicle.owner != current_user or document.vehicle_id != vehicle_id:
+                abort(403)
+
+            db.session.delete(document)
+            db.session.commit()
+            flash("Your document has been deleted!", "success")
+            log_action(f"User {current_user.username} deleted document {document.document_type} for vehicle {document.vehicle.name}")
+            return redirect(url_for("main.view_vehicle", vehicle_id=vehicle_id))
+
+        flash("Invalid OTP. Please try again.", "danger")
+    return render_template("verify_delete_document_otp.html", form=form)
 
 # Setup basic logging configuration
 logging.basicConfig(level=logging.INFO)

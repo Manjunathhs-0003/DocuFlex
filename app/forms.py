@@ -217,3 +217,7 @@ class ResetPasswordForm(FlaskForm):
         "Confirm Password", validators=[DataRequired(), EqualTo("password")]
     )
     submit = SubmitField("Reset Password")
+    
+class OTPDeletionForm(FlaskForm):
+    otp = IntegerField("OTP", validators=[DataRequired()])
+    submit = SubmitField("Verify OTP and Delete")
