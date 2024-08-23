@@ -441,7 +441,7 @@ def view_logs():
     logs = Log.query.order_by(Log.timestamp.desc()).all()
     return render_template("view_logs.html", logs=logs)
 
-@main.route("/send_delete_otp/<int:vehicle_id>", methods=["POST"])
+@main.route("/send_delete_otp/<int:vehicle_id>", methods=["POST"])  # Ensure it accepts POST
 @login_required
 def send_delete_otp(vehicle_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
@@ -460,10 +460,19 @@ def send_delete_otp(vehicle_id):
 @login_required
 def verify_delete_otp(vehicle_id):
     form = OTPDeletionForm()
+    attempt_limit = 3  # Set the maximum number of attempts
+
+    if 'otp_attempts' not in session:
+        session['otp_attempts'] = 0
+
     if form.validate_on_submit():
+        print(f"Provided OTP: {form.otp.data}")
+        print(f"Session OTP: {session.get('delete_otp')}")
         if "delete_otp" in session and form.otp.data == session["delete_otp"] and "delete_vehicle_id" in session and session["delete_vehicle_id"] == vehicle_id:
-            session.pop("delete_otp")
-            session.pop("delete_vehicle_id")
+            print("OTP verification successful.")
+            session.pop("delete_otp", None)
+            session.pop("delete_vehicle_id", None)
+            session.pop('otp_attempts', None)  # Reset attempts on success
             
             vehicle = Vehicle.query.get_or_404(vehicle_id)
             if vehicle.owner != current_user:
@@ -474,11 +483,22 @@ def verify_delete_otp(vehicle_id):
             flash("Your vehicle has been deleted!", "success")
             log_action(f"User {current_user.username} deleted vehicle {vehicle.name}")
             return redirect(url_for("main.list_vehicles"))
-
-        flash("Invalid OTP. Please try again.", "danger")
+        else:
+            session['otp_attempts'] += 1
+            print(f"OTP attempts: {session['otp_attempts']}")
+            flash("Invalid OTP. Please try again.", "danger")
+            if session['otp_attempts'] >= attempt_limit:
+                otp = random.randint(100000, 999999)
+                session["delete_otp"] = otp
+                session['otp_attempts'] = 0  # Reset attempt count
+                send_notification("Your New OTP Code for Deletion", [current_user.email], f"Your new OTP code is {otp}")
+                flash("Maximum attempts reached. A new OTP has been sent to your email.", "info")
+                return redirect(url_for("main.verify_delete_otp", vehicle_id=vehicle_id))
     return render_template("verify_delete_otp.html", form=form)
 
-@main.route("/send_delete_document_otp/<int:vehicle_id>/<int:document_id>", methods=["POST"])
+
+
+@main.route("/send_delete_document_otp/<int:vehicle_id>/<int:document_id>", methods=["POST"])  # Ensure it accepts POST
 @login_required
 def send_delete_document_otp(vehicle_id, document_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
@@ -490,7 +510,7 @@ def send_delete_document_otp(vehicle_id, document_id):
     session["delete_document_otp"] = otp
     session["delete_document_id"] = document_id
     session["delete_vehicle_id"] = vehicle_id
-    send_notification("Your OTP Code for Deletion", [current_user.email], f"Your OTP code is {otp}")
+    send_notification("Your OTP Code for Deletion", [current_user.email], f"Your OTP code for deleting the document is {otp}")
 
     flash("An OTP for deletion has been sent to your email.", "info")
     return redirect(url_for("main.verify_delete_document_otp", vehicle_id=vehicle_id, document_id=document_id))
@@ -499,11 +519,20 @@ def send_delete_document_otp(vehicle_id, document_id):
 @login_required
 def verify_delete_document_otp(vehicle_id, document_id):
     form = OTPDeletionForm()
+    attempt_limit = 3  # Set the maximum number of attempts
+
+    if 'otp_attempts_doc' not in session:
+        session['otp_attempts_doc'] = 0
+
     if form.validate_on_submit():
+        print(f"Provided OTP: {form.otp.data}")
+        print(f"Session OTP: {session.get('delete_document_otp')}")
         if "delete_document_otp" in session and form.otp.data == session["delete_document_otp"] and "delete_document_id" in session and session["delete_document_id"] == document_id:
-            session.pop("delete_document_otp")
-            session.pop("delete_document_id")
-            session.pop("delete_vehicle_id")
+            print("OTP verification successful.")
+            session.pop("delete_document_otp", None)
+            session.pop("delete_document_id", None)
+            session.pop("delete_vehicle_id", None)
+            session.pop('otp_attempts_doc', None)  # Reset attempts on success
             
             document = Document.query.get_or_404(document_id)
             if document.vehicle.owner != current_user or document.vehicle_id != vehicle_id:
@@ -514,8 +543,17 @@ def verify_delete_document_otp(vehicle_id, document_id):
             flash("Your document has been deleted!", "success")
             log_action(f"User {current_user.username} deleted document {document.document_type} for vehicle {document.vehicle.name}")
             return redirect(url_for("main.view_vehicle", vehicle_id=vehicle_id))
-
-        flash("Invalid OTP. Please try again.", "danger")
+        else:
+            session['otp_attempts_doc'] += 1
+            print(f"OTP attempts: {session['otp_attempts_doc']}")
+            flash("Invalid OTP. Please try again.", "danger")
+            if session['otp_attempts_doc'] >= attempt_limit:
+                otp = random.randint(100000, 999999)
+                session["delete_document_otp"] = otp
+                session['otp_attempts_doc'] = 0  # Reset attempt count
+                send_notification("Your New OTP Code for Deletion", [current_user.email], f"Your new OTP code is {otp}")
+                flash("Maximum attempts reached. A new OTP has been sent to your email.", "info")
+                return redirect(url_for("main.verify_delete_document_otp", vehicle_id=vehicle_id, document_id=document_id))
     return render_template("verify_delete_document_otp.html", form=form)
 
 # Setup basic logging configuration
