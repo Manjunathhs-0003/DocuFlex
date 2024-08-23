@@ -242,7 +242,8 @@ def view_vehicle(vehicle_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
     if vehicle.owner != current_user:
         abort(403)
-    return render_template("vehicle.html", vehicle=vehicle)
+    documents = Document.query.filter_by(vehicle_id=vehicle.id).order_by(Document.id.desc()).all()  # Sort documents by ID
+    return render_template("vehicle.html", vehicle=vehicle, documents=documents)
 
 @main.route("/vehicle/<int:vehicle_id>/document/new", methods=["GET", "POST"])
 @login_required
@@ -356,15 +357,25 @@ def edit_vehicle(vehicle_id):
 @login_required
 @log_action_decorator("User deleting a vehicle")
 def delete_vehicle(vehicle_id):
-    vehicle = Vehicle.query.get_or_404(vehicle_id)
-    if vehicle.owner != current_user:
-        abort(403)  # Forbid deletion if not the owner
+    if "otp_verified" in session and session["otp_verified"] and "delete_vehicle_id" in session and session["delete_vehicle_id"] == vehicle_id:
+        vehicle = Vehicle.query.get_or_404(vehicle_id)
+        if vehicle.owner != current_user:
+            abort(403)
 
-    db.session.delete(vehicle)
-    db.session.commit()
-    flash("Your vehicle has been deleted!", "success")
-    log_action(f"User {current_user.username} deleted vehicle {vehicle.name}")
-    return redirect(url_for("main.list_vehicles"))
+        # Clear session values after confirmation
+        session.pop("delete_otp", None)
+        session.pop("delete_vehicle_id", None)
+        session.pop("otp_verified", None)
+        session.pop('otp_attempts', None)  # Reset attempts
+
+        db.session.delete(vehicle)
+        db.session.commit()
+        flash("Your vehicle has been deleted!", "success")
+        log_action(f"User {current_user.username} deleted vehicle {vehicle.name}")
+        return redirect(url_for("main.list_vehicles"))
+    else:
+        flash("Unauthorized operation or OTP verification failed.", "danger")
+        return redirect(url_for("main.home"))
 
 @main.route("/vehicle/<int:vehicle_id>/document/<int:document_id>/edit", methods=["GET", "POST"])
 @login_required
@@ -441,7 +452,7 @@ def view_logs():
     logs = Log.query.order_by(Log.timestamp.desc()).all()
     return render_template("view_logs.html", logs=logs)
 
-@main.route("/send_delete_otp/<int:vehicle_id>", methods=["POST"])  # Ensure it accepts POST
+@main.route("/send_delete_otp/<int:vehicle_id>", methods=["POST"])
 @login_required
 def send_delete_otp(vehicle_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
@@ -451,7 +462,13 @@ def send_delete_otp(vehicle_id):
     otp = random.randint(100000, 999999)
     session["delete_otp"] = otp
     session["delete_vehicle_id"] = vehicle_id
+    session['otp_attempts'] = 0  # Reset attempts
     send_notification("Your OTP Code for Deletion", [current_user.email], f"Your OTP code is {otp}")
+
+    # Debugging logs
+    print(f"OTP generated: {otp}")
+    print(f"Session delete_otp: {session['delete_otp']}")
+    print(f"Session delete_vehicle_id: {session['delete_vehicle_id']}")
 
     flash("An OTP for deletion has been sent to your email.", "info")
     return redirect(url_for("main.verify_delete_otp", vehicle_id=vehicle_id))
@@ -466,26 +483,15 @@ def verify_delete_otp(vehicle_id):
         session['otp_attempts'] = 0
 
     if form.validate_on_submit():
-        print(f"Provided OTP: {form.otp.data}")
-        print(f"Session OTP: {session.get('delete_otp')}")
+        print(f"Provided OTP: {form.otp.data}")  # Debugging
+        print(f"Session OTP: {session.get('delete_otp')}")  # Debugging
         if "delete_otp" in session and form.otp.data == session["delete_otp"] and "delete_vehicle_id" in session and session["delete_vehicle_id"] == vehicle_id:
-            print("OTP verification successful.")
-            session.pop("delete_otp", None)
-            session.pop("delete_vehicle_id", None)
-            session.pop('otp_attempts', None)  # Reset attempts on success
-            
-            vehicle = Vehicle.query.get_or_404(vehicle_id)
-            if vehicle.owner != current_user:
-                abort(403)
-                
-            db.session.delete(vehicle)
-            db.session.commit()
-            flash("Your vehicle has been deleted!", "success")
-            log_action(f"User {current_user.username} deleted vehicle {vehicle.name}")
-            return redirect(url_for("main.list_vehicles"))
+            print("OTP verification successful.")  # Debugging
+            session["otp_verified"] = True  # Set verification flag
+            return redirect(url_for("main.delete_vehicle", vehicle_id=vehicle_id))
         else:
             session['otp_attempts'] += 1
-            print(f"OTP attempts: {session['otp_attempts']}")
+            print(f"OTP attempts: {session['otp_attempts']}")  # Debugging
             flash("Invalid OTP. Please try again.", "danger")
             if session['otp_attempts'] >= attempt_limit:
                 otp = random.randint(100000, 999999)
@@ -496,6 +502,29 @@ def verify_delete_otp(vehicle_id):
                 return redirect(url_for("main.verify_delete_otp", vehicle_id=vehicle_id))
     return render_template("verify_delete_otp.html", form=form)
 
+@main.route("/vehicle/<int:vehicle_id>/delete_post_otp", methods=["POST"])
+@login_required
+@log_action_decorator("User deleting a vehicle")
+def delete_vehicle_post_otp(vehicle_id):
+    if "delete_otp" in session and "delete_vehicle_id" in session and session["delete_vehicle_id"] == vehicle_id:
+        # Session cleanup should be done after successful verification.
+        vehicle = Vehicle.query.get_or_404(vehicle_id)
+        if vehicle.owner != current_user:
+            abort(403)
+
+        # Clear the session values
+        session.pop("delete_otp", None)
+        session.pop("delete_vehicle_id", None)
+        session.pop('otp_attempts', None)  # Reset attempts
+
+        db.session.delete(vehicle)
+        db.session.commit()
+        flash("Your vehicle has been deleted!", "success")
+        log_action(f"User {current_user.username} deleted vehicle {vehicle.name}")
+        return redirect(url_for("main.list_vehicles"))
+    else:
+        flash("Unauthorized operation or OTP verification failed.", "danger")
+        return redirect(url_for("main.home"))
 
 
 @main.route("/send_delete_document_otp/<int:vehicle_id>/<int:document_id>", methods=["POST"])  # Ensure it accepts POST
