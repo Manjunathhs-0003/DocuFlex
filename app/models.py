@@ -37,6 +37,7 @@ class Document(db.Model):
         nullable=False,
         index=True,
     )
+    additional_info = db.Column(db.Text, nullable=True)
 
 
 class Log(db.Model):

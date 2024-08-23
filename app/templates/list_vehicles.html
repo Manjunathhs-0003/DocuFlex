@@ -1,24 +1,24 @@
 {% extends "layout.html" %}
 
-{% block title %}Your Vehicles - Fleet Management{% endblock %}
+{% block title %}Vehicles List - Fleet Management{% endblock %}
 
 {% block main %}
 <div class="container">
     <h1 class="mt-4">Your Vehicles</h1>
+    <a href="{{ url_for('main.new_vehicle') }}" class="btn btn-primary mb-4">Add New Vehicle</a>
     <ul class="list-group">
         {% for vehicle in vehicles %}
         <li class="list-group-item d-flex justify-content-between align-items-center">
-            {{ vehicle.name }} - {{ vehicle.vehicle_number }}
-            <div>
-                <a href="{{ url_for('main.vehicle', vehicle_id=vehicle.id) }}" class="btn btn-info btn-sm mr-2">View</a>
+            <span>{{ vehicle.name }} - {{ vehicle.vehicle_number }}</span>
+            <span>
+                <a href="{{ url_for('main.view_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-info btn-sm mr-2">View</a>
                 <a href="{{ url_for('main.edit_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-warning btn-sm mr-2">Edit</a>
                 <form action="{{ url_for('main.delete_vehicle', vehicle_id=vehicle.id) }}" method="POST" class="d-inline">
                     <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                 </form>
-            </div>
+            </span>
         </li>
         {% endfor %}
     </ul>
-    <a href="{{ url_for('main.new_vehicle') }}" class="btn btn-primary mt-3">Add New Vehicle</a>
 </div>
 {% endblock %}

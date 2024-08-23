@@ -101,7 +101,8 @@ class DocumentForm(FlaskForm):
             ("Insurance", "Insurance"),
             ("Emission Certificate", "Emission Certificate"),
             ("Permit", "Permit"),
-            # Other document types...
+            ("Fitness Certificate", "Fitness Certificate"),  # Add Fitness Certificate
+            ("Road Tax", "Road Tax"),  # Add Road Tax
         ],
         validators=[DataRequired()],
     )
@@ -112,8 +113,8 @@ class DocumentForm(FlaskForm):
     # Insurance Fields
     insurance_policy_number = StringField("Policy Number", validators=[Optional()])
     insurance_company_name = StringField("Insurance Company Name", validators=[Optional()])
-    policy_start_date = DateField("Policy Start Date", format="%Y-%m-%d", validators=[Optional()]);
-    policy_expiry_date = DateField("Policy Expiry Date", format="%Y-%m-%d", validators=[Optional()]);
+    policy_start_date = DateField("Policy Start Date", format="%Y-%m-%d", validators=[Optional()])
+    policy_expiry_date = DateField("Policy Expiry Date", format="%Y-%m-%d", validators=[Optional()])
     policy_coverage_amount = FloatField("Policy Coverage Amount", validators=[Optional()])
 
     # Emission Certificate Fields
@@ -124,8 +125,17 @@ class DocumentForm(FlaskForm):
     # Permit Fields
     permit_number = StringField("Permit Number", validators=[Optional()])
     issuing_authority = StringField("Issuing Authority", validators=[Optional()])
-    permit_start_date = DateField("Permit Start Date", format="%Y-%m-%d", validators=[Optional()]);
-    permit_end_date = DateField("Permit End Date", format="%Y-%m-%d", validators=[Optional()]);
+    permit_start_date = DateField("Permit Start Date", format="%Y-%m-%d", validators=[Optional()])
+    permit_end_date = DateField("Permit End Date", format="%Y-%m-%d", validators=[Optional()])
+    
+    fitness_certificate_number = StringField("Fitness Certificate Number", validators=[Optional()])
+    fitness_issuing_authority = StringField("Issuing Authority", validators=[Optional()])
+    fitness_start_date = DateField("Fitness Start Date", format="%Y-%m-%d", validators=[Optional()])
+    fitness_end_date = DateField("Fitness End Date", format="%Y-%m-%d", validators=[Optional()])
+    
+    road_tax_receipt_number = StringField("Receipt Number", validators=[Optional()])
+    road_tax_amount = FloatField("Amount Paid", validators=[Optional()])
+    road_tax_payment_date = DateField("Payment Date", format="%Y-%m-%d", validators=[Optional()])
 
     submit = SubmitField("Add Document")
 
@@ -146,11 +156,18 @@ class DocumentForm(FlaskForm):
         self.issuing_authority.validators = [Optional()]
         self.permit_start_date.validators = [Optional()]
         self.permit_end_date.validators = [Optional()]
+        self.fitness_certificate_number.validators = [Optional()]
+        self.fitness_issuing_authority.validators = [Optional()]
+        self.fitness_start_date.validators = [Optional()]
+        self.fitness_end_date.validators = [Optional()]
+        self.road_tax_receipt_number.validators = [Optional()]
+        self.road_tax_amount.validators = [Optional()]
+        self.road_tax_payment_date.validators = [Optional()]
 
         if document_type == 'Insurance':
-            self.serial_number.validators = [Optional()] # This will hold the policy number
-            self.start_date.validators = [Optional()] # The policy start date
-            self.end_date.validators = [Optional()] # The policy expiry date
+            self.serial_number.validators = [Optional()]  # This will hold the policy number
+            self.start_date.validators = [Optional()]  # The policy start date
+            self.end_date.validators = [Optional()]  # The policy expiry date
             self.insurance_policy_number.validators = [DataRequired(), Regexp(r'^\d{16}$', message="Policy number must be 16 digits.")]
             self.insurance_company_name.validators = [DataRequired()]
             self.policy_start_date.validators = [DataRequired()]
@@ -165,11 +182,21 @@ class DocumentForm(FlaskForm):
             self.issuing_authority.validators = [DataRequired()]
             self.permit_start_date.validators = [DataRequired()]
             self.permit_end_date.validators = [DataRequired()]
+        elif document_type == 'Fitness Certificate':
+            self.fitness_certificate_number.validators = [DataRequired()]
+            self.fitness_issuing_authority.validators = [DataRequired()]
+            self.fitness_start_date.validators = [DataRequired()]
+            self.fitness_end_date.validators = [DataRequired()]
+        elif document_type == 'Road Tax':
+            self.road_tax_receipt_number.validators = [DataRequired()]
+            self.road_tax_amount.validators = [DataRequired()]
+            self.road_tax_payment_date.validators = [DataRequired()]
         else:
             self.serial_number.validators = [DataRequired()]
             self.start_date.validators = [DataRequired()]
             self.end_date.validators = [DataRequired()]
 
+        
 
 class RenewalForm(FlaskForm):
     start_date = DateField(
