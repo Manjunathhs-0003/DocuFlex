@@ -79,6 +79,38 @@
                 {{ form.permit_end_date(class="form-control", type="date") }}
             </div>
         </div>
+        <div id="fitness-fields" style="display:none;">
+            <div class="form-group">
+                {{ form.fitness_certificate_number.label(class="form-label") }}<br>
+                {{ form.fitness_certificate_number(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.fitness_issuing_authority.label(class="form-label") }}<br>
+                {{ form.fitness_issuing_authority(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.fitness_start_date.label(class="form-label") }}<br>
+                {{ form.fitness_start_date(class="form-control", type="date") }}
+            </div>
+            <div class="form-group">
+                {{ form.fitness_end_date.label(class="form-label") }}<br>
+                {{ form.fitness_end_date(class="form-control", type="date") }}
+            </div>
+        </div>
+        <div id="road-tax-fields" style="display:none;">
+            <div class="form-group">
+                {{ form.road_tax_receipt_number.label(class="form-label") }}<br>
+                {{ form.road_tax_receipt_number(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.road_tax_amount.label(class="form-label") }}<br>
+                {{ form.road_tax_amount(class="form-control") }}
+            </div>
+            <div class="form-group">
+                {{ form.road_tax_payment_date.label(class="form-label") }}<br>
+                {{ form.road_tax_payment_date(class="form-control", type="date") }}
+            </div>
+        </div>
         <div class="form-group">
             {{ form.submit(class="btn btn-primary") }}
         </div>
@@ -93,27 +125,28 @@
         var insuranceFields = document.getElementById('insurance-fields');
         var emissionFields = document.getElementById('emission-fields');
         var permitFields = document.getElementById('permit-fields');
+        var fitnessFields = document.getElementById('fitness-fields');
+        var roadTaxFields = document.getElementById('road-tax-fields');
+
+        commonFields.style.display = 'none';
+        insuranceFields.style.display = 'none';
+        emissionFields.style.display = 'none';
+        permitFields.style.display = 'none';
+        fitnessFields.style.display = 'none';
+        roadTaxFields.style.display = 'none';
 
         if (docType === 'Insurance') {
-            commonFields.style.display = 'none';
             insuranceFields.style.display = 'block';
-            emissionFields.style.display = 'none';
-            permitFields.style.display = 'none';
         } else if(docType === 'Emission Certificate') {
-            commonFields.style.display = 'none';
-            insuranceFields.style.display = 'none';
             emissionFields.style.display = 'block';
-            permitFields.style.display = 'none';
         } else if(docType === 'Permit') {
-            commonFields.style.display = 'none';
-            insuranceFields.style.display = 'none';
-            emissionFields.style.display = 'none';
             permitFields.style.display = 'block';
+        } else if(docType === 'Fitness Certificate') {
+            fitnessFields.style.display = 'block';
+        } else if(docType === 'Road Tax') {
+            roadTaxFields.style.display = 'block';
         } else {
             commonFields.style.display = 'block';
-            insuranceFields.style.display = 'none';
-            emissionFields.style.display = 'none';
-            permitFields.style.display = 'none';
         }
     };
 
