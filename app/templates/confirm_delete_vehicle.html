@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm Delete Vehicle - Fleet Management{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-4">Confirm Delete Vehicle</h1>
+    <p>Are you sure you want to delete the vehicle <strong>{{ vehicle.name }} - {{ vehicle.vehicle_number }}</strong>?</p>
+    <form method="POST" action="{{ url_for('main.delete_vehicle_post_otp', vehicle_id=vehicle.id) }}">
+        <button type="submit" class="btn btn-danger">Confirm Delete</button>
+        <a href="{{ url_for('main.view_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

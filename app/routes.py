@@ -10,7 +10,7 @@ from flask import (
     session,
 )
 import json
-from app.forms import OTPDeletionForm 
+from app.forms import OTPDeletionForm
 from flask_login import login_user, current_user, logout_user, login_required
 from app import db, bcrypt
 from app.models import User, Vehicle, Document, Log
@@ -38,6 +38,7 @@ from app.utils import log_action, log_action_decorator
 
 main = Blueprint("main", __name__)
 
+
 # Route definitions
 @main.route("/")
 def index():
@@ -45,16 +46,19 @@ def index():
         return redirect(url_for("main.home"))
     return render_template("home.html")
 
+
 @main.route("/home")
 @login_required
 def home():
     vehicles = Vehicle.query.filter_by(owner=current_user).all()
     return render_template("home.html", vehicles=vehicles)
 
+
 # Utility functions
 def generate_recovery_token(user_email):
     s = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
     return s.dumps(user_email, salt=current_app.config["SECURITY_PASSWORD_SALT"])
+
 
 def verify_recovery_token(token, expiration=3600):
     s = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
@@ -66,6 +70,7 @@ def verify_recovery_token(token, expiration=3600):
         return False
     return email
 
+
 def send_sms(to, body):
     account_sid = os.environ.get("TWILIO_ACCOUNT_SID")
     auth_token = os.environ.get("TWILIO_AUTH_TOKEN")
@@ -75,6 +80,7 @@ def send_sms(to, body):
     client.messages.create(body=body, from_=twilio_phone_number, to=to)
     logging.info(f"SMS sent successfully to {to}")
 
+
 def notify_user(document):
     user = document.vehicle.owner
     expiration_alert_period = timedelta(days=30)  # Notify 30 days before expiration
@@ -83,7 +89,9 @@ def notify_user(document):
     if 0 <= (document.end_date - current_time).days <= expiration_alert_period.days:
         subject = f"Document Expiry Notification for {document.document_type}"
         recipients = [user.email]
-        renewal_link = url_for("main.renew_document", document_id=document.id, _external=True)
+        renewal_link = url_for(
+            "main.renew_document", document_id=document.id, _external=True
+        )
         body = (
             f"Dear {user.username},\n\n"
             f"This is a reminder that your {document.document_type} document for vehicle {document.vehicle.name} "
@@ -126,7 +134,9 @@ def login():
                 otp = random.randint(100000, 999999)
                 session["otp"] = otp
                 session["user_id"] = user.id
-                send_notification("Your OTP Code", [user.email], f"Your OTP code is {otp}")
+                send_notification(
+                    "Your OTP Code", [user.email], f"Your OTP code is {otp}"
+                )
                 flash("An OTP has been sent to your email.", "info")
                 log_action(f"User {user.username} requested OTP for login")
                 return redirect(url_for("main.verify_otp"))
@@ -135,9 +145,11 @@ def login():
 
     return render_template("login.html", form=form)
 
+
 @main.route("/learn_more")
 def learn_more():
     return render_template("learn_more.html")
+
 
 @main.route("/verify_otp", methods=["GET", "POST"])
 def verify_otp():
@@ -154,6 +166,7 @@ def verify_otp():
             flash("Invalid OTP. Please try again.", "danger")
     return render_template("verify_otp.html", form=form)
 
+
 @main.route("/password_recovery", methods=["GET", "POST"])
 def password_recovery():
     form = PasswordRecoveryForm()
@@ -162,12 +175,17 @@ def password_recovery():
         if user:
             token = generate_recovery_token(user.email)
             recovery_link = url_for("main.reset_password", token=token, _external=True)
-            send_notification("Password Recovery", [user.email], f"Reset your password using the following link: {recovery_link}")
+            send_notification(
+                "Password Recovery",
+                [user.email],
+                f"Reset your password using the following link: {recovery_link}",
+            )
             flash("A password recovery link has been sent to your email.", "info")
             log_action(f"Password recovery email sent to {user.email}")
         else:
             flash("No account found with that email.", "danger")
     return render_template("password_recovery.html", form=form)
+
 
 @main.route("/reset_password/<token>", methods=["GET", "POST"])
 def reset_password(token):
@@ -183,7 +201,9 @@ def reset_password(token):
 
     form = ResetPasswordForm()
     if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode(
+            "utf-8"
+        )
         user.password = hashed_password
         db.session.commit()
         flash("Your password has been updated!", "success")
@@ -192,6 +212,7 @@ def reset_password(token):
 
     return render_template("reset_password.html", form=form)
 
+
 @main.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
@@ -199,7 +220,9 @@ def register():
 
     form = RegistrationForm()
     if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode(
+            "utf-8"
+        )
         user = User(
             username=form.username.data,
             email=form.email.data,
@@ -213,12 +236,14 @@ def register():
 
     return render_template("register.html", form=form)
 
+
 @main.route("/logout")
 @login_required
 def logout():
     logout_user()
     flash("You have been logged out.", "info")
     return redirect(url_for("main.index"))
+
 
 @main.route("/vehicle/new", methods=["GET", "POST"])
 @login_required
@@ -239,9 +264,13 @@ def new_vehicle():
             return redirect(url_for("main.list_vehicles"))
         except IntegrityError:
             db.session.rollback()
-            flash("Vehicle number already exists. Please use a different vehicle number.", "danger")
+            flash(
+                "Vehicle number already exists. Please use a different vehicle number.",
+                "danger",
+            )
 
     return render_template("create_vehicle.html", form=form)
+
 
 @main.route("/vehicle/<int:vehicle_id>")
 @login_required
@@ -249,8 +278,13 @@ def view_vehicle(vehicle_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
     if vehicle.owner != current_user:
         abort(403)
-    documents = Document.query.filter_by(vehicle_id=vehicle.id).order_by(Document.id.desc()).all()  # Sort documents by ID
+    documents = (
+        Document.query.filter_by(vehicle_id=vehicle.id)
+        .order_by(Document.id.desc())
+        .all()
+    )  # Sort documents by ID
     return render_template("vehicle.html", vehicle=vehicle, documents=documents)
+
 
 @main.route("/vehicle/<int:vehicle_id>/document/new", methods=["GET", "POST"])
 @login_required
@@ -259,7 +293,7 @@ def add_document(vehicle_id):
     form = DocumentForm()
     if form.validate_on_submit():
         form.update_fields(form.document_type.data)
-        
+
         additional_info = {}
         if form.document_type.data == "Insurance":
             document = Document(
@@ -268,10 +302,12 @@ def add_document(vehicle_id):
                 start_date=form.policy_start_date.data,
                 end_date=form.policy_expiry_date.data,
                 vehicle=vehicle,
-                additional_info=json.dumps({
-                    "insurance_company_name": form.insurance_company_name.data,
-                    "policy_coverage_amount": form.policy_coverage_amount.data
-                })
+                additional_info=json.dumps(
+                    {
+                        "insurance_company_name": form.insurance_company_name.data,
+                        "policy_coverage_amount": form.policy_coverage_amount.data,
+                    }
+                ),
             )
         elif form.document_type.data == "Emission Certificate":
             document = Document(
@@ -279,7 +315,7 @@ def add_document(vehicle_id):
                 serial_number=form.emission_certificate_number.data,
                 start_date=form.emission_start_date.data,
                 end_date=form.emission_end_date.data,
-                vehicle=vehicle
+                vehicle=vehicle,
             )
         elif form.document_type.data == "Permit":
             document = Document(
@@ -287,8 +323,10 @@ def add_document(vehicle_id):
                 serial_number=form.permit_number.data,
                 start_date=form.permit_start_date.data,
                 end_date=form.permit_end_date.data,
-                additional_info=json.dumps({"issuing_authority": form.issuing_authority.data}),
-                vehicle=vehicle
+                additional_info=json.dumps(
+                    {"issuing_authority": form.issuing_authority.data}
+                ),
+                vehicle=vehicle,
             )
         elif form.document_type.data == "Fitness Certificate":
             document = Document(
@@ -296,8 +334,10 @@ def add_document(vehicle_id):
                 serial_number=form.fitness_certificate_number.data,
                 start_date=form.fitness_start_date.data,
                 end_date=form.fitness_end_date.data,
-                additional_info=json.dumps({"issuing_authority": form.fitness_issuing_authority.data}),
-                vehicle=vehicle
+                additional_info=json.dumps(
+                    {"issuing_authority": form.fitness_issuing_authority.data}
+                ),
+                vehicle=vehicle,
             )
         elif form.document_type.data == "Road Tax":
             document = Document(
@@ -306,7 +346,7 @@ def add_document(vehicle_id):
                 start_date=form.road_tax_payment_date.data,  # Use payment date as start_date for storage
                 end_date=form.road_tax_payment_date.data,  # Store end_date as the same payment date, for simplicity
                 additional_info=json.dumps({"amount_paid": form.road_tax_amount.data}),
-                vehicle=vehicle
+                vehicle=vehicle,
             )
         else:
             document = Document(
@@ -314,7 +354,7 @@ def add_document(vehicle_id):
                 serial_number=form.serial_number.data,
                 start_date=form.start_date.data,
                 end_date=form.end_date.data,
-                vehicle=vehicle
+                vehicle=vehicle,
             )
 
         db.session.add(document)
@@ -325,17 +365,20 @@ def add_document(vehicle_id):
         return redirect(url_for("main.view_vehicle", vehicle_id=vehicle.id))
     return render_template("create_document.html", form=form, vehicle=vehicle)
 
+
 @main.route("/vehicles")
 @login_required
 def list_vehicles():
     vehicles = Vehicle.query.filter_by(owner=current_user).all()
     return render_template("list_vehicles.html", vehicles=vehicles)
 
+
 @main.route("/profile")
 @login_required
 def profile():
     vehicles = Vehicle.query.filter_by(owner=current_user).all()
     return render_template("profile.html", vehicles=vehicles)
+
 
 @main.route("/vehicle/<int:vehicle_id>/edit", methods=["GET", "POST"])
 @login_required
@@ -360,11 +403,17 @@ def edit_vehicle(vehicle_id):
 
     return render_template("edit_vehicle.html", form=form)
 
+
 @main.route("/vehicle/<int:vehicle_id>/delete", methods=["POST"])
 @login_required
 @log_action_decorator("User deleting a vehicle")
 def delete_vehicle(vehicle_id):
-    if "otp_verified" in session and session["otp_verified"] and "delete_vehicle_id" in session and session["delete_vehicle_id"] == vehicle_id:
+    if (
+        "otp_verified" in session
+        and session["otp_verified"]
+        and "delete_vehicle_id" in session
+        and session["delete_vehicle_id"] == vehicle_id
+    ):
         vehicle = Vehicle.query.get_or_404(vehicle_id)
         if vehicle.owner != current_user:
             abort(403)
@@ -373,7 +422,7 @@ def delete_vehicle(vehicle_id):
         session.pop("delete_otp", None)
         session.pop("delete_vehicle_id", None)
         session.pop("otp_verified", None)
-        session.pop('otp_attempts', None)  # Reset attempts
+        session.pop("otp_attempts", None)  # Reset attempts
 
         db.session.delete(vehicle)
         db.session.commit()
@@ -384,7 +433,10 @@ def delete_vehicle(vehicle_id):
         flash("Unauthorized operation or OTP verification failed.", "danger")
         return redirect(url_for("main.home"))
 
-@main.route("/vehicle/<int:vehicle_id>/document/<int:document_id>/edit", methods=["GET", "POST"])
+
+@main.route(
+    "/vehicle/<int:vehicle_id>/document/<int:document_id>/edit", methods=["GET", "POST"]
+)
 @login_required
 def edit_document(vehicle_id, document_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
@@ -393,9 +445,11 @@ def edit_document(vehicle_id, document_id):
         abort(403)
 
     form = DocumentForm()
-    form.update_fields(document.document_type)  # Update fields for the specific document type
+    form.update_fields(
+        document.document_type
+    )  # Update fields for the specific document type
     if form.validate_on_submit():
-        if document.document_type == 'Insurance':
+        if document.document_type == "Insurance":
             document.serial_number = form.insurance_policy_number.data
             document.start_date = form.policy_start_date.data
             document.end_date = form.policy_expiry_date.data
@@ -409,7 +463,7 @@ def edit_document(vehicle_id, document_id):
         return redirect(url_for("main.view_vehicle", vehicle_id=vehicle.id))
     elif request.method == "GET":
         form.document_type.data = document.document_type
-        if document.document_type == 'Insurance':
+        if document.document_type == "Insurance":
             form.insurance_policy_number.data = document.serial_number
             form.policy_start_date.data = document.start_date
             form.policy_expiry_date.data = document.end_date
@@ -418,9 +472,14 @@ def edit_document(vehicle_id, document_id):
             form.start_date.data = document.start_date
             form.end_date.data = document.end_date
 
-    return render_template("edit_document.html", form=form, vehicle=vehicle, document=document)
+    return render_template(
+        "edit_document.html", form=form, vehicle=vehicle, document=document
+    )
 
-@main.route("/vehicle/<int:vehicle_id>/document/<int:document_id>/delete", methods=["POST"])
+
+@main.route(
+    "/vehicle/<int:vehicle_id>/document/<int:document_id>/delete", methods=["POST"]
+)
 @login_required
 def delete_document(vehicle_id, document_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
@@ -431,6 +490,7 @@ def delete_document(vehicle_id, document_id):
     db.session.commit()
     flash("Your document has been deleted!", "success")
     return redirect(url_for("main.view_vehicle", vehicle_id=vehicle.id))
+
 
 @main.route("/document/<int:document_id>/renew", methods=["GET", "POST"])
 @login_required
@@ -453,11 +513,13 @@ def renew_document(document_id):
 
     return render_template("renew_document.html", form=form, document=document)
 
+
 @main.route("/logs")
 @login_required  # Ensure only logged-in users can see this
 def view_logs():
     logs = Log.query.order_by(Log.timestamp.desc()).all()
     return render_template("view_logs.html", logs=logs)
+
 
 @main.route("/send_delete_otp/<int:vehicle_id>", methods=["POST"])
 @login_required
@@ -472,17 +534,15 @@ def send_delete_otp(vehicle_id):
     session['otp_attempts'] = 0  # Reset attempts
     send_notification("Your OTP Code for Deletion", [current_user.email], f"Your OTP code is {otp}")
 
-    # Debugging logs
-    print(f"OTP generated: {otp}")
-    print(f"Session delete_otp: {session['delete_otp']}")
-    print(f"Session delete_vehicle_id: {session['delete_vehicle_id']}")
-
     flash("An OTP for deletion has been sent to your email.", "info")
     return redirect(url_for("main.verify_delete_otp", vehicle_id=vehicle_id))
+
 
 @main.route("/verify_delete_otp/<int:vehicle_id>", methods=["GET", "POST"])
 @login_required
 def verify_delete_otp(vehicle_id):
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+
     form = OTPDeletionForm()
     attempt_limit = 3  # Set the maximum number of attempts
 
@@ -490,15 +550,11 @@ def verify_delete_otp(vehicle_id):
         session['otp_attempts'] = 0
 
     if form.validate_on_submit():
-        print(f"Provided OTP: {form.otp.data}")  # Debugging
-        print(f"Session OTP: {session.get('delete_otp')}")  # Debugging
         if "delete_otp" in session and form.otp.data == session["delete_otp"] and "delete_vehicle_id" in session and session["delete_vehicle_id"] == vehicle_id:
-            print("OTP verification successful.")  # Debugging
             session["otp_verified"] = True  # Set verification flag
-            return redirect(url_for("main.delete_vehicle", vehicle_id=vehicle_id))
+            return redirect(url_for("main.confirm_delete_vehicle", vehicle_id=vehicle_id))
         else:
             session['otp_attempts'] += 1
-            print(f"OTP attempts: {session['otp_attempts']}")  # Debugging
             flash("Invalid OTP. Please try again.", "danger")
             if session['otp_attempts'] >= attempt_limit:
                 otp = random.randint(100000, 999999)
@@ -507,21 +563,32 @@ def verify_delete_otp(vehicle_id):
                 send_notification("Your New OTP Code for Deletion", [current_user.email], f"Your new OTP code is {otp}")
                 flash("Maximum attempts reached. A new OTP has been sent to your email.", "info")
                 return redirect(url_for("main.verify_delete_otp", vehicle_id=vehicle_id))
-    return render_template("verify_delete_otp.html", form=form)
+    
+    return render_template("verify_delete_otp.html", form=form, vehicle=vehicle)
+
+@main.route("/confirm_delete_vehicle/<int:vehicle_id>", methods=["GET", "POST"])
+@login_required
+def confirm_delete_vehicle(vehicle_id):
+    vehicle = Vehicle.query.get_or_404(vehicle_id)
+    if request.method == "POST":
+        return redirect(url_for("main.delete_vehicle_post_otp", vehicle_id=vehicle_id))
+
+    return render_template("confirm_delete_vehicle.html", vehicle=vehicle)
+
 
 @main.route("/vehicle/<int:vehicle_id>/delete_post_otp", methods=["POST"])
 @login_required
 @log_action_decorator("User deleting a vehicle")
 def delete_vehicle_post_otp(vehicle_id):
-    if "delete_otp" in session and "delete_vehicle_id" in session and session["delete_vehicle_id"] == vehicle_id:
-        # Session cleanup should be done after successful verification.
+    if "otp_verified" in session and session["otp_verified"] and "delete_vehicle_id" in session and session["delete_vehicle_id"] == vehicle_id:
         vehicle = Vehicle.query.get_or_404(vehicle_id)
         if vehicle.owner != current_user:
             abort(403)
 
-        # Clear the session values
+        # Clear session values after confirmation
         session.pop("delete_otp", None)
         session.pop("delete_vehicle_id", None)
+        session.pop("otp_verified", None)
         session.pop('otp_attempts', None)  # Reset attempts
 
         db.session.delete(vehicle)
@@ -534,7 +601,9 @@ def delete_vehicle_post_otp(vehicle_id):
         return redirect(url_for("main.home"))
 
 
-@main.route("/send_delete_document_otp/<int:vehicle_id>/<int:document_id>", methods=["POST"])  # Ensure it accepts POST
+@main.route(
+    "/send_delete_document_otp/<int:vehicle_id>/<int:document_id>", methods=["POST"]
+)  # Ensure it accepts POST
 @login_required
 def send_delete_document_otp(vehicle_id, document_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
@@ -546,51 +615,89 @@ def send_delete_document_otp(vehicle_id, document_id):
     session["delete_document_otp"] = otp
     session["delete_document_id"] = document_id
     session["delete_vehicle_id"] = vehicle_id
-    send_notification("Your OTP Code for Deletion", [current_user.email], f"Your OTP code for deleting the document is {otp}")
+    send_notification(
+        "Your OTP Code for Deletion",
+        [current_user.email],
+        f"Your OTP code for deleting the document is {otp}",
+    )
 
     flash("An OTP for deletion has been sent to your email.", "info")
-    return redirect(url_for("main.verify_delete_document_otp", vehicle_id=vehicle_id, document_id=document_id))
+    return redirect(
+        url_for(
+            "main.verify_delete_document_otp",
+            vehicle_id=vehicle_id,
+            document_id=document_id,
+        )
+    )
 
-@main.route("/verify_delete_document_otp/<int:vehicle_id>/<int:document_id>", methods=["GET", "POST"])
+
+@main.route(
+    "/verify_delete_document_otp/<int:vehicle_id>/<int:document_id>",
+    methods=["GET", "POST"],
+)
 @login_required
 def verify_delete_document_otp(vehicle_id, document_id):
     form = OTPDeletionForm()
     attempt_limit = 3  # Set the maximum number of attempts
 
-    if 'otp_attempts_doc' not in session:
-        session['otp_attempts_doc'] = 0
+    if "otp_attempts_doc" not in session:
+        session["otp_attempts_doc"] = 0
 
     if form.validate_on_submit():
         print(f"Provided OTP: {form.otp.data}")
         print(f"Session OTP: {session.get('delete_document_otp')}")
-        if "delete_document_otp" in session and form.otp.data == session["delete_document_otp"] and "delete_document_id" in session and session["delete_document_id"] == document_id:
+        if (
+            "delete_document_otp" in session
+            and form.otp.data == session["delete_document_otp"]
+            and "delete_document_id" in session
+            and session["delete_document_id"] == document_id
+        ):
             print("OTP verification successful.")
             session.pop("delete_document_otp", None)
             session.pop("delete_document_id", None)
             session.pop("delete_vehicle_id", None)
-            session.pop('otp_attempts_doc', None)  # Reset attempts on success
-            
+            session.pop("otp_attempts_doc", None)  # Reset attempts on success
+
             document = Document.query.get_or_404(document_id)
-            if document.vehicle.owner != current_user or document.vehicle_id != vehicle_id:
+            if (
+                document.vehicle.owner != current_user
+                or document.vehicle_id != vehicle_id
+            ):
                 abort(403)
 
             db.session.delete(document)
             db.session.commit()
             flash("Your document has been deleted!", "success")
-            log_action(f"User {current_user.username} deleted document {document.document_type} for vehicle {document.vehicle.name}")
+            log_action(
+                f"User {current_user.username} deleted document {document.document_type} for vehicle {document.vehicle.name}"
+            )
             return redirect(url_for("main.view_vehicle", vehicle_id=vehicle_id))
         else:
-            session['otp_attempts_doc'] += 1
+            session["otp_attempts_doc"] += 1
             print(f"OTP attempts: {session['otp_attempts_doc']}")
             flash("Invalid OTP. Please try again.", "danger")
-            if session['otp_attempts_doc'] >= attempt_limit:
+            if session["otp_attempts_doc"] >= attempt_limit:
                 otp = random.randint(100000, 999999)
                 session["delete_document_otp"] = otp
-                session['otp_attempts_doc'] = 0  # Reset attempt count
-                send_notification("Your New OTP Code for Deletion", [current_user.email], f"Your new OTP code is {otp}")
-                flash("Maximum attempts reached. A new OTP has been sent to your email.", "info")
-                return redirect(url_for("main.verify_delete_document_otp", vehicle_id=vehicle_id, document_id=document_id))
+                session["otp_attempts_doc"] = 0  # Reset attempt count
+                send_notification(
+                    "Your New OTP Code for Deletion",
+                    [current_user.email],
+                    f"Your new OTP code is {otp}",
+                )
+                flash(
+                    "Maximum attempts reached. A new OTP has been sent to your email.",
+                    "info",
+                )
+                return redirect(
+                    url_for(
+                        "main.verify_delete_document_otp",
+                        vehicle_id=vehicle_id,
+                        document_id=document_id,
+                    )
+                )
     return render_template("verify_delete_document_otp.html", form=form)
+
 
 # Setup basic logging configuration
 logging.basicConfig(level=logging.INFO)

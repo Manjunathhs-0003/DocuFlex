@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Verify OTP for Vehicle Deletion - Fleet Management{% endblock %}
+{% block title %}Verify OTP for Deletion - Fleet Management{% endblock %}
 
 {% block content %}
 <div class="container">
     <h1 class="mt-4">Verify OTP for Vehicle Deletion</h1>
     <p>A one-time password (OTP) has been sent to your email. Please enter the OTP to confirm deletion.</p>
-    <form method="POST">
+    <form method="POST" action="{{ url_for('main.verify_delete_otp', vehicle_id=vehicle.id) }}">
         {{ form.hidden_tag() }}
         <div class="form-group">
             {{ form.otp.label(class="form-label") }}
