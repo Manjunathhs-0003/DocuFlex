@@ -3,49 +3,111 @@
 {% block title %}Home - Fleet Management{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="jumbotron mt-4">
-        <h1 class="display-4">Welcome to Fleet Management</h1>
-        <p class="lead">Manage your fleet of vehicles and their associated documents efficiently.</p>
-        <hr class="my-4">
+<!-- Hero Section -->
+<div class="jumbotron text-center mt-4">
+    <h1 class="display-4">Streamline Your Fleet Management with Ease</h1>
+    <p class="lead">Efficiently manage your fleet's documents and records with our comprehensive tools.</p>
+    {% if current_user.is_authenticated %}
         <a class="btn btn-primary btn-lg" href="{{ url_for('main.new_vehicle') }}" role="button">Add New Vehicle</a>
-    </div>
+        <a class="btn btn-info btn-lg" href="{{ url_for('main.learn_more') }}" role="button">Learn More</a>
+    {% else %}
+        <a class="btn btn-primary btn-lg" href="{{ url_for('main.register') }}" role="button">Get Started</a>
+        <a class="btn btn-secondary btn-lg" href="{{ url_for('main.login') }}" role="button">Login</a>
+    {% endif %}
+</div>
 
-    <div class="row">
-        {% for vehicle in vehicles %}
-        <div class="col-lg-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h4>{{ vehicle.name }} - {{ vehicle.vehicle_number }}</h4>
-                </div>
-                <div class="card-body">
-                    <p class="card-text">Owner: {{ vehicle.owner.username }}</p>
-                    <a href="{{ url_for('main.view_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-info btn-sm">View</a>
-                    <a href="{{ url_for('main.edit_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-warning btn-sm">Edit</a>
-                    <form action="{{ url_for('main.send_delete_otp', vehicle_id=vehicle.id) }}" method="POST" class="d-inline">
-                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                    </form>
-                </div>
-                <div class="card-footer">
-                    <h5 class="mb-3">Documents</h5>
-                    <ul class="list-group">
-                        {% for document in vehicle.documents %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ document.document_type }} - Expires: {{ document.end_date.strftime('%Y-%m-%d') }}
-                            <span>
-                                <a href="{{ url_for('main.edit_document', vehicle_id=vehicle.id, document_id=document.id) }}" class="btn btn-warning btn-sm">Edit</a>
-                                <form action="{{ url_for('main.send_delete_document_otp', vehicle_id=vehicle.id, document_id=document.id) }}" method="POST" class="d-inline">
-                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                </form>
-                            </span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    <a href="{{ url_for('main.add_document', vehicle_id=vehicle.id) }}" class="btn btn-primary btn-sm mt-3">Add New Document</a>
-                </div>
-            </div>
+<!-- Always Show Key Features -->
+<div class="container mt-5">
+    <h2 class="text-center">Key Features</h2>
+    <div class="row mt-4">
+        <div class="col-md-3 text-center">
+            <i class="fas fa-car fa-3x mb-2"></i>
+            <h4>Vehicle Management</h4>
+            <p>Add, edit, and track details of all vehicles in your fleet.</p>
         </div>
-        {% endfor %}
+        <div class="col-md-3 text-center">
+            <i class="fas fa-folder-open fa-3x mb-2"></i>
+            <h4>Document Management</h4>
+            <p>Securely store and manage vehicle-related documents.</p>
+        </div>
+        <div class="col-md-3 text-center">
+            <i class="fas fa-shield-alt fa-3x mb-2"></i>
+            <h4>Insurance Tracking</h4>
+            <p>Monitor and manage insurance policies and renewal dates easily.</p>
+        </div>
+        <div class="col-md-3 text-center">
+            <i class="fas fa-bell fa-3x mb-2"></i>
+            <h4>Automatic Reminders</h4>
+            <p>Receive timely reminders for document renewals and important dates.</p>
+        </div>
     </div>
 </div>
+
+<!-- Conditional Display Based on Authentication Status -->
+{% if current_user.is_authenticated %}
+    <!-- Your Vehicles Section -->
+    <div class="container mt-5">
+        <h2>Your Vehicles</h2>
+        <div class="row">
+            {% for vehicle in vehicles %}
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>{{ vehicle.name }} - {{ vehicle.vehicle_number }}</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">Owner: {{ vehicle.owner.username }}</p>
+                        <a href="{{ url_for('main.view_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-info btn-sm">View</a>
+                        <a href="{{ url_for('main.edit_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-warning btn-sm">Edit</a>
+                        <form action="{{ url_for('main.send_delete_otp', vehicle_id=vehicle.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </div>
+                    <div class="card-footer">
+                        <h5 class="mb-3">Documents</h5>
+                        <ul class="list-group">
+                            {% for document in vehicle.documents %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ document.document_type }} - Expires: {{ document.end_date.strftime('%Y-%m-%d') }}
+                                <span>
+                                    <a href="{{ url_for('main.edit_document', vehicle_id=vehicle.id, document_id=document.id) }}" class="btn btn-warning btn-sm">Edit</a>
+                                    <form action="{{ url_for('main.send_delete_document_otp', vehicle_id=vehicle.id, document_id=document.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                    </form>
+                                </span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        <a href="{{ url_for('main.add_document', vehicle_id=vehicle.id) }}" class="btn btn-primary btn-sm mt-3">Add New Document</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+{% else %}
+    <!-- Information Section for Users Not Logged In -->
+    <div class="container mt-5">
+        <h2>About Fleet Management</h2>
+        <p>We provide transportation facilities for non-flammable goods all over India. Our logistics company is dedicated to providing seamless and efficient transportation and supply chain solutions. With a strong commitment to reliability and customer satisfaction, we specialize in the safe and timely delivery of goods to destinations across the region. Whether it's warehousing, distribution, or freight forwarding, we leverage our expertise and cutting-edge technology to meet your logistics needs. Trust us to keep your supply chain running smoothly.</p>
+    </div>
+{% endif %}
+
+<!-- Footer Section -->
+<footer class="footer bg-dark text-white mt-5 py-4">
+    <div class="container text-center">
+        <p>Follow Us</p>
+        <a href="https://www.facebook.com" target="_blank" class="text-white mx-2"><i class="fab fa-facebook-f fa-2x"></i></a>
+        <a href="https://www.twitter.com" target="_blank" class="text-white mx-2"><i class="fab fa-twitter fa-2x"></i></a>
+        <a href="https://www.instagram.com" target="_blank" class="text-white mx-2"><i class="fab fa-instagram fa-2x"></i></a>
+        <a href="https://www.linkedin.com" target="_blank" class="text-white mx-2"><i class="fab fa-linkedin fa-2x"></i></a>
+        <div class="mt-3">
+            <p>Contact Us: <a href="mailto:support@fleetmanagement.com" class="text-white">support@fleetmanagement.com</a></p>
+            <p>Phone: +1 800 123 4567</p>
+            <p>Address: 123 Fleet Management St, Logistics City, Country</p>
+        </div>
+        <p class="mt-4">&copy; 2023 Fleet Management. All Rights Reserved.</p>
+    </div>
+</footer>
+
 {% endblock %}

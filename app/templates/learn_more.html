@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Learn More - Fleet Management{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Learn More About Fleet Management</h1>
+    
+    <!-- Introduction Section -->
+    <section class="mb-5">
+        <h2>Introduction</h2>
+        <p class="lead">Fleet Management is your one-stop solution for managing your fleet's documents and records. Our application is designed to streamline your operations, ensuring your fleet stays on the road with minimal downtime.</p>
+    </section>
+    
+    <!-- Detailed Features Section -->
+    <section class="mb-5">
+        <h2>Detailed Features</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <h4><i class="fas fa-car"></i> Vehicle Management</h4>
+                <p>Add, edit, and track details of all vehicles in your fleet with ease, ensuring you always have up-to-date information.</p>
+            </div>
+            <div class="col-md-4">
+                <h4><i class="fas fa-folder-open"></i> Document Management</h4>
+                <p>Securely store and manage all vehicle-related documents, including registration, insurance, permits, and inspection records.</p>
+            </div>
+            <div class="col-md-4">
+                <h4><i class="fas fa-shield-alt"></i> Insurance Tracking</h4>
+                <p>Monitor and manage insurance policies, ensuring timely renewals and compliance with regulations.</p>
+            </div>
+            <div class="col-md-4">
+                <h4><i class="fas fa-bell"></i> Automatic Reminders</h4>
+                <p>Set up automatic reminders for document renewals, inspections, and other critical dates to keep your fleet compliant.</p>
+            </div>
+            <div class="col-md-4">
+                <h4><i class="fas fa-lock"></i> Secure Access</h4>
+                <p>Ensure data privacy and secure access to information with state-of-the-art security features.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Benefits Section -->
+    <section class="mb-5">
+        <h2>Benefits</h2>
+        <ul class="list-unstyled">
+            <li><i class="fas fa-check-circle text-success"></i> Improved operational efficiency</li>
+            <li><i class="fas fa-check-circle text-success"></i> Reduced administrative burden</li>
+            <li><i class="fas fa-check-circle text-success"></i> Enhanced compliance and risk management</li>
+            <li><i class="fas fa-check-circle text-success"></i> Time and cost savings</li>
+            <li><i class="fas fa-check-circle text-success"></i> Better decision making with accurate data</li>
+        </ul>
+    </section>
+    
+    <!-- How It Works Section -->
+    <section class="mb-5">
+        <h2>How It Works</h2>
+        <ol class="list-unstyled">
+            <li><strong>1. Sign Up:</strong> Create a free account to get started.</li>
+            <li><strong>2. Add Vehicles:</strong> Add your fleet vehicles with details.</li>
+            <li><strong>3. Upload Documents:</strong> Securely upload and store vehicle-related documents.</li>
+            <li><strong>4. Set Reminders:</strong> Set up automatic reminders for important dates.</li>
+            <li><strong>5. Monitor Fleet:</strong> Monitor the status and compliance of your fleet from the dashboard.</li>
+        </ol>
+    </section>
+    
+    <!-- Customer Testimonials Section -->
+    <section class="mb-5">
+        <h2>Customer Testimonials</h2>
+        <div class="blockquote">
+            <p class="mb-0">"Fleet Management has revolutionized the way we manage our fleet documentation. The automatic reminders have saved us countless hours."</p>
+            <footer class="blockquote-footer">John Doe, <cite title="Company Name">Logistics Co.</cite></footer>
+        </div>
+    </section>
+    
+    <!-- FAQs Section -->
+    <section class="mb-5">
+        <h2>FAQs</h2>
+        <div class="accordion" id="faqAccordion">
+            <div class="card">
+                <div class="card-header" id="faq1">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse1" aria-expanded="true" aria-controls="collapse1">
+                            What is Fleet Management?
+                        </button>
+                    </h5>
+                </div>
+                <div id="collapse1" class="collapse show" aria-labelledby="faq1" data-parent="#faqAccordion">
+                    <div class="card-body">
+                        Fleet Management is a comprehensive solution for managing fleet documents, ensuring compliance, and streamlining operations.
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header" id="faq2">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
+                            How much does it cost?
+                        </button>
+                    </h5>
+                </div>
+                <div id="collapse2" class="collapse" aria-labelledby="faq2" data-parent="#faqAccordion">
+                    <div class="card-body">
+                        we are currently working on the features, will get back to the pricing later
+                        enjoy the free trial now!!
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header" id="faq3">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
+                            How do I get started?
+                        </button>
+                    </h5>
+                </div>
+                <div id="collapse3" class="collapse" aria-labelledby="faq3" data-parent="#faqAccordion">
+                    <div class="card-body">
+                        Getting started is easy. Simply <a href="{{ url_for('main.register') }}">sign up</a> for a free account and start adding your fleet vehicles and documents.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

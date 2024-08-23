@@ -4,7 +4,9 @@
 
 {% block content %}
 <div class="container">
-    <h1 class="mt-4">Profile</h1>
+    <h1 class="mt-4">{{ current_user.username }}'s Profile</h1>
+    <p>Email: {{ current_user.email }}</p>
+    <p>Phone: {{ current_user.phone }}</p>
     <h2 class="mt-4">Your Vehicles</h2>
     <ul class="list-group">
         {% for vehicle in vehicles %}

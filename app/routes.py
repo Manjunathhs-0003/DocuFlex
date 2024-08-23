@@ -38,6 +38,19 @@ from app.utils import log_action, log_action_decorator
 
 main = Blueprint("main", __name__)
 
+# Route definitions
+@main.route("/")
+def index():
+    if current_user.is_authenticated:
+        return redirect(url_for("main.home"))
+    return render_template("home.html")
+
+@main.route("/home")
+@login_required
+def home():
+    vehicles = Vehicle.query.filter_by(owner=current_user).all()
+    return render_template("home.html", vehicles=vehicles)
+
 # Utility functions
 def generate_recovery_token(user_email):
     s = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
@@ -91,18 +104,6 @@ def notify_user(document):
             )
             send_sms(user.phone, sms_body)
 
-# Route definitions
-@main.route("/")
-def index():
-    if current_user.is_authenticated:
-        return redirect(url_for("main.home"))
-    return render_template("mcm.html")
-
-@main.route("/home")
-@login_required
-def home():
-    vehicles = Vehicle.query.filter_by(owner=current_user).all()
-    return render_template("home.html", vehicles=vehicles)
 
 @main.route("/login", methods=["GET", "POST"])
 @log_action_decorator("User attempted to log in")
@@ -133,6 +134,10 @@ def login():
                 flash("No account found with that email.", "danger")
 
     return render_template("login.html", form=form)
+
+@main.route("/learn_more")
+def learn_more():
+    return render_template("learn_more.html")
 
 @main.route("/verify_otp", methods=["GET", "POST"])
 def verify_otp():
@@ -209,8 +214,10 @@ def register():
     return render_template("register.html", form=form)
 
 @main.route("/logout")
+@login_required
 def logout():
     logout_user()
+    flash("You have been logged out.", "info")
     return redirect(url_for("main.index"))
 
 @main.route("/vehicle/new", methods=["GET", "POST"])
