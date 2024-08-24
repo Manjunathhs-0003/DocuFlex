@@ -5,22 +5,88 @@
 {% block content %}
 <div class="container">
     <h1 class="mt-4">{{ current_user.username }}'s Profile</h1>
-    <p>Email: {{ current_user.email }}</p>
-    <p>Phone: {{ current_user.phone }}</p>
-    <h2 class="mt-4">Your Vehicles</h2>
-    <ul class="list-group">
-        {% for vehicle in vehicles %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>{{ vehicle.name }} - {{ vehicle.vehicle_number }}</span>
-            <span>
-                <a href="{{ url_for('main.view_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-info btn-sm mr-2">View</a>
-                <a href="{{ url_for('main.edit_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-warning btn-sm mr-2">Edit</a>
-                <form action="{{ url_for('main.send_delete_otp', vehicle_id=vehicle.id) }}" method="POST" class="d-inline">
-                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                </form>
-            </span>
-        </li>
-        {% endfor %}
-    </ul>
+    <p><strong>Email:</strong> {{ current_user.email }}</p>
+    <a href="{{ url_for('main.edit_profile') }}" class="btn btn-primary mb-4">Edit Profile</a>
+    
+    <h2 class="mt-4">Account Settings</h2>
+    <div class="list-group">
+        <a href="{{ url_for('main.update_password') }}" class="list-group-item list-group-item-action">Update Password</a>
+        <a href="{{ url_for('main.manage_notifications') }}" class="list-group-item list-group-item-action">Manage Notifications</a>
+        <a href="{{ url_for('main.adjust_privacy_settings') }}" class="list-group-item list-group-item-action">Adjust Privacy Settings</a>
+    </div>
+
+    <h2 class="mt-4">Document Overview</h2>
+    <div id="document-overview" class="mt-3">
+        <div class="mb-3">
+            <input type="text" id="search-documents" placeholder="Search documents..." class="form-control">
+        </div>
+        <div class="mb-3">
+            <select id="filter-documents" class="form-control">
+                <option value="">Filter by Type</option>
+                <option value="Insurance">Insurance</option>
+                <option value="Permit">Permit</option>
+                <option value="Fitness Certificate">Fitness Certificate</option>
+                <option value="Emission Certificate">Emission Certificate</option>
+                <option value="Road Tax">Road Tax</option>
+            </select>
+        </div>
+        <ul class="list-group">
+            {% for document in current_user.documents %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                    <h5>{{ document.document_type }}</h5>
+                    <p>Upload Date: {{ document.date_posted.strftime('%Y-%m-%d') }} | Start Date: {{ document.start_date.strftime('%Y-%m-%d') }} | End Date: {{ document.end_date.strftime('%Y-%m-%d') }}</p>
+                </span>
+                <span>
+                    <a href="{{ url_for('main.download_document', document_id=document.id) }}" class="btn btn-primary btn-sm">Download</a>
+                    <form action="{{ url_for('main.delete_document', document_id=document.id) }}" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+        <a href="{{ url_for('main.upload_document') }}" class="btn btn-success mt-3">Upload New Document</a>
+    </div>
+
+    <h2 class="mt-4">Vehicle Records</h2>
+    <div id="vehicle-records" class="mt-3">
+        <ul class="list-group">
+            {% for vehicle in current_user.vehicles %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                    <h5>{{ vehicle.name }} - {{ vehicle.vehicle_number }}</h5>
+                    <p>Registration Number: {{ vehicle.vehicle_number }} | Owner: {{ vehicle.owner.username }}</p>
+                </span>
+                <span>
+                    <a href="{{ url_for('main.view_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-info btn-sm">View</a>
+                    <a href="{{ url_for('main.edit_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-warning btn-sm">Edit</a>
+                    <form action="{{ url_for('main.send_delete_otp', vehicle_id=vehicle.id) }}" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+        <a href="{{ url_for('main.new_vehicle') }}" class="btn btn-success mt-3">Add New Vehicle</a>
+    </div>
+
+    <h2 class="mt-4">Compliance Alerts</h2>
+    <div id="compliance-alerts" class="mt-3">
+        <ul class="list-group">
+            <!-- Assuming compliance alerts are a relationship, check current_user.compliance_alerts exists -->
+            {% for alert in current_user.compliance_alerts %}
+            <li class="list-group-item">
+                <p>{{ alert.message }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <h2 class="mt-4">Support & Feedback</h2>
+    <div id="support-feedback" class="mt-3">
+        <a href="{{ url_for('main.help_center') }}" class="btn btn-info mb-2">Help Center</a>
+        <a href="{{ url_for('main.feedback_form') }}" class="btn btn-secondary mb-2">Feedback Form</a>
+    </div>
 </div>
 {% endblock %}

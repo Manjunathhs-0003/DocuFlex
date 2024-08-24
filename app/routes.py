@@ -720,6 +720,102 @@ def verify_delete_document_otp(vehicle_id, document_id):
                 )
     return render_template("verify_delete_document_otp.html", form=form)
 
+@main.route("/profile/edit", methods=["GET", "POST"])
+@login_required
+def edit_profile():
+    form = EditProfileForm()  # Assuming you have a form to edit profile details
+    if form.validate_on_submit():
+        current_user.username = form.username.data
+        current_user.email = form.email.data
+        db.session.commit()
+        flash("Your profile has been updated!", "success")
+        return redirect(url_for('main.profile'))
+    elif request.method == 'GET':
+        form.username.data = current_user.username
+        form.email.data = current_user.email
+    return render_template('edit_profile.html', form=form)
+
+@main.route("/profile/update_password", methods=["GET", "POST"])
+@login_required
+def update_password():
+    form = UpdatePasswordForm()  # Assuming you have a form to update password
+    if form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
+        current_user.password = hashed_password
+        db.session.commit()
+        flash("Your password has been updated!", "success")
+        return redirect(url_for('main.profile'))
+    return render_template('update_password.html', form=form)
+
+@main.route("/profile/manage_notifications")
+@login_required
+def manage_notifications():
+    # Logic to manage notifications
+    return render_template('manage_notifications.html')
+
+@main.route("/profile/adjust_privacy_settings")
+@login_required
+def adjust_privacy_settings():
+    # Logic to adjust privacy settings
+    return render_template('adjust_privacy_settings.html')
+
+@main.route("/upload_document", methods=["GET", "POST"])
+@login_required
+def upload_document():
+    form = UploadDocumentForm()
+    if form.validate_on_submit():
+        document = Document(
+            document_type=form.document_type.data,
+            upload_date=datetime.utcnow(),
+            status="Uploaded",
+            user=current_user  # Assuming a relationship between Document and User
+        )
+        db.session.add(document)
+        db.session.commit()
+        flash("Your document has been uploaded!", "success")
+        return redirect(url_for("main.profile"))
+    return render_template("upload_document.html", form=form)
+
+@main.route("/profile/delete_document/<int:document_id>", methods=["POST"])
+@login_required
+def delete_profile_document(document_id):
+    document = Document.query.get_or_404(document_id)
+    if document.user != current_user:
+        abort(403)
+    db.session.delete(document)
+    db.session.commit()
+    flash("Your document has been deleted!", "success")
+    return redirect(url_for("main.profile"))
+
+
+@main.route("/download_document/<int:document_id>")
+@login_required
+def download_document(document_id):
+    document = Document.query.get_or_404(document_id)
+    if document.user != current_user:
+        abort(403)
+    # Logic to download the document
+    return send_file(document.file_path, as_attachment=True)  # Assuming file_path is an attribute
+
+@main.route("/profile/help_center")
+def help_center():
+    return render_template("help_center.html")
+
+@main.route("/profile/feedback_form", methods=["GET", "POST"])
+@login_required
+def feedback_form():
+    form = FeedbackForm()  # Assuming a form to gather feedback
+    if form.validate_on_submit():
+        feedback = Feedback(
+            user_id=current_user.id,
+            feedback_text=form.feedback.data,
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(feedback)
+        db.session.commit()
+        flash("Thank you for your feedback!", "success")
+        return redirect(url_for('main.profile'))
+    return render_template('feedback_form.html', form=form)
 
 # Setup basic logging configuration
 logging.basicConfig(level=logging.INFO)
