@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Feedback - Fleet Management{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-4">Feedback Form</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.feedback.label(class="form-label") }}
+            {{ form.feedback(class="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Feedback</button>
+    </form>
+</div>
+{% endblock %}
