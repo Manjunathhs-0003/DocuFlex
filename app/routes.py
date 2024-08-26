@@ -403,7 +403,7 @@ def edit_vehicle(vehicle_id):
     if vehicle.owner != current_user:
         abort(403)
 
-    form = VehicleForm()
+    form = VehicleForm(obj=vehicle, vehicle_id=vehicle_id)
     if form.validate_on_submit():
         vehicle.name = form.name.data
         vehicle.vehicle_number = form.vehicle_number.data
@@ -411,10 +411,6 @@ def edit_vehicle(vehicle_id):
         flash("Your vehicle has been updated!", "success")
         log_action(f"User {current_user.username} edited vehicle {vehicle.name}")
         return redirect(url_for("main.list_vehicles"))
-
-    elif request.method == "GET":
-        form.name.data = vehicle.name
-        form.vehicle_number.data = vehicle.vehicle_number
 
     return render_template("edit_vehicle.html", form=form)
 
@@ -457,37 +453,88 @@ def edit_document(vehicle_id, document_id):
     if vehicle.owner != current_user or document.vehicle_id != vehicle.id:
         abort(403)
 
-    form = DocumentForm()
-    form.update_fields(
-        document.document_type
-    )  # Update fields for the specific document type
+    form = DocumentForm(obj=document)
+    form.update_fields(document.document_type)  # Update fields for the specific document type
+
     if form.validate_on_submit():
         if document.document_type == "Insurance":
             document.serial_number = form.insurance_policy_number.data
             document.start_date = form.policy_start_date.data
             document.end_date = form.policy_expiry_date.data
+            document.additional_info = json.dumps({
+                "insurance_company_name": form.insurance_company_name.data,
+                "policy_coverage_amount": form.policy_coverage_amount.data,
+            })
+        elif document.document_type == "Emission Certificate":
+            document.serial_number = form.emission_certificate_number.data
+            document.start_date = form.emission_start_date.data
+            document.end_date = form.emission_end_date.data
+        elif document.document_type == "Permit":
+            document.serial_number = form.permit_number.data
+            document.start_date = form.permit_start_date.data
+            document.end_date = form.permit_end_date.data
+            document.additional_info = json.dumps({
+                "issuing_authority": form.issuing_authority.data
+            })
+        elif document.document_type == "Fitness Certificate":
+            document.serial_number = form.fitness_certificate_number.data
+            document.start_date = form.fitness_start_date.data
+            document.end_date = form.fitness_end_date.data
+            document.additional_info = json.dumps({
+                "issuing_authority": form.fitness_issuing_authority.data
+            })
+        elif document.document_type == "Road Tax":
+            document.serial_number = form.road_tax_receipt_number.data
+            document.start_date = form.road_tax_payment_date.data
+            document.end_date = form.road_tax_payment_date.data
+            document.additional_info = json.dumps({
+                "amount_paid": form.road_tax_amount.data
+            })
         else:
-            document.document_type = form.document_type.data
             document.serial_number = form.serial_number.data
             document.start_date = form.start_date.data
             document.end_date = form.end_date.data
+
         db.session.commit()
         flash("Your document has been updated!", "success")
         return redirect(url_for("main.view_vehicle", vehicle_id=vehicle.id))
+    
     elif request.method == "GET":
-        form.document_type.data = document.document_type
+         # Pre-fill the form with document data based on the document type
         if document.document_type == "Insurance":
             form.insurance_policy_number.data = document.serial_number
             form.policy_start_date.data = document.start_date
             form.policy_expiry_date.data = document.end_date
+            additional_info = json.loads(document.additional_info)
+            form.insurance_company_name.data = additional_info.get("insurance_company_name", "")
+            form.policy_coverage_amount.data = additional_info.get("policy_coverage_amount", "")
+        elif document.document_type == "Emission Certificate":
+            form.emission_certificate_number.data = document.serial_number
+            form.emission_start_date.data = document.start_date
+            form.emission_end_date.data = document.end_date
+        elif document.document_type == "Permit":
+            form.permit_number.data = document.serial_number
+            form.permit_start_date.data = document.start_date
+            form.permit_end_date.data = document.end_date
+            additional_info = json.loads(document.additional_info)
+            form.issuing_authority.data = additional_info.get("issuing_authority", "")
+        elif document.document_type == "Fitness Certificate":
+            form.fitness_certificate_number.data = document.serial_number
+            form.fitness_start_date.data = document.start_date
+            form.fitness_end_date.data = document.end_date
+            additional_info = json.loads(document.additional_info)
+            form.fitness_issuing_authority.data = additional_info.get("issuing_authority", "")
+        elif document.document_type == "Road Tax":
+            form.road_tax_receipt_number.data = document.serial_number
+            form.road_tax_payment_date.data = document.start_date  # Assuming start_date and end_date are the same for Road Tax
+            additional_info = json.loads(document.additional_info)
+            form.road_tax_amount.data = additional_info.get("amount_paid", "")
         else:
             form.serial_number.data = document.serial_number
             form.start_date.data = document.start_date
             form.end_date.data = document.end_date
 
-    return render_template(
-        "edit_document.html", form=form, vehicle=vehicle, document=document
-    )
+    return render_template("edit_document.html", form=form, vehicle=vehicle, document=document)
 
 
 @main.route(

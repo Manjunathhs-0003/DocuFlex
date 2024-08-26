@@ -87,9 +87,14 @@ class VehicleForm(FlaskForm):
     vehicle_number = StringField("Vehicle Number", validators=[DataRequired()])
     submit = SubmitField("Add Vehicle")
 
+    def __init__(self, *args, **kwargs):
+        self.vehicle_id = kwargs.pop('vehicle_id', None)
+        super(VehicleForm, self).__init__(*args, **kwargs)
+
     def validate_vehicle_number(self, vehicle_number):
+        # Skip validation if editing the same vehicle
         vehicle = Vehicle.query.filter_by(vehicle_number=vehicle_number.data).first()
-        if vehicle:
+        if vehicle and (self.vehicle_id is None or vehicle.id != self.vehicle_id):
             raise ValidationError(
                 "This vehicle number is already registered. Please choose a different one."
             )
