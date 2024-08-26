@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Adjust Privacy Settings - Fleet Management{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-4">Adjust Privacy Settings</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.privacy_settings.label(class="form-label") }}
+            {{ form.privacy_settings(class="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+</div>
+{% endblock %}

@@ -12,6 +12,7 @@ class User(db.Model, UserMixin):
     image_file = db.Column(db.String(20), nullable=False, default="default.jpg")
     password = db.Column(db.String(60), nullable=False)
     vehicles = db.relationship("Vehicle", backref="owner", lazy=True)
+    compliance_alerts = db.relationship('ComplianceAlert', backref='user', lazy=True)
 
 
 class Vehicle(db.Model):
@@ -23,7 +24,11 @@ class Vehicle(db.Model):
         "Document", backref="vehicle", lazy=True, cascade="all, delete-orphan"
     )
 
-
+class ComplianceAlert(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.String(250), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
 class Document(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     document_type = db.Column(db.String(50), nullable=False)
@@ -38,6 +43,11 @@ class Document(db.Model):
         index=True,
     )
     additional_info = db.Column(db.Text, nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    status = db.Column(db.String(20), nullable=True)
+    file_path = db.Column(db.String(300), nullable=True)
+    def __repr__(self):
+        return f"<Document {self.document_type}>"
 
 
 class Log(db.Model):

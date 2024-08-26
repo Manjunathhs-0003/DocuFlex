@@ -17,21 +17,14 @@
 
     <h2 class="mt-4">Document Overview</h2>
     <div id="document-overview" class="mt-3">
-        <div class="mb-3">
-            <input type="text" id="search-documents" placeholder="Search documents..." class="form-control">
-        </div>
-        <div class="mb-3">
-            <select id="filter-documents" class="form-control">
-                <option value="">Filter by Type</option>
-                <option value="Insurance">Insurance</option>
-                <option value="Permit">Permit</option>
-                <option value="Fitness Certificate">Fitness Certificate</option>
-                <option value="Emission Certificate">Emission Certificate</option>
-                <option value="Road Tax">Road Tax</option>
-            </select>
-        </div>
+        <form method="GET" action="{{ url_for('main.search_documents') }}">
+            <div class="mb-3">
+                <input type="text" name="query" placeholder="Search documents..." class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary mb-3">Search</button>
+        </form>
         <ul class="list-group">
-            {% for document in current_user.documents %}
+            {% for document in documents %}
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <span>
                     <h5>{{ document.document_type }}</h5>
@@ -39,14 +32,13 @@
                 </span>
                 <span>
                     <a href="{{ url_for('main.download_document', document_id=document.id) }}" class="btn btn-primary btn-sm">Download</a>
-                    <form action="{{ url_for('main.delete_document', document_id=document.id) }}" method="POST" class="d-inline">
+                    <form action="{{ url_for('main.delete_profile_document', document_id=document.id) }}" method="POST" class="d-inline">
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                     </form>
                 </span>
             </li>
             {% endfor %}
         </ul>
-        
     </div>
 
     <h2 class="mt-4">Vehicle Records</h2>
@@ -74,7 +66,6 @@
     <h2 class="mt-4">Compliance Alerts</h2>
     <div id="compliance-alerts" class="mt-3">
         <ul class="list-group">
-            <!-- Assuming compliance alerts are a relationship, check current_user.compliance_alerts exists -->
             {% for alert in current_user.compliance_alerts %}
             <li class="list-group-item">
                 <p>{{ alert.message }}</p>

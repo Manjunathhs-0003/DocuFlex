@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Notifications - Fleet Management{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-4">Manage Notifications</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.notifications_enabled.label(class="form-label") }}
+            {{ form.notifications_enabled(class="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+</div>
+{% endblock %}

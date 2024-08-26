@@ -23,6 +23,11 @@ from app.forms import (
     PasswordRecoveryForm,
     OTPForm,
     ResetPasswordForm,
+    UpdatePasswordForm, 
+    ManageNotificationsForm, 
+    AdjustPrivacySettingsForm, 
+    DocumentForm, 
+    FeedbackForm,
 )
 from app.notification_utils import send_notification
 from sqlalchemy.exc import IntegrityError
@@ -377,7 +382,8 @@ def list_vehicles():
 @login_required
 def profile():
     vehicles = Vehicle.query.filter_by(owner=current_user).all()
-    return render_template("profile.html", vehicles=vehicles)
+    documents = Document.query.filter_by(user_id=current_user.id).all()
+    return render_template("profile.html", vehicles=vehicles, documents=documents)
 
 
 @main.route("/vehicle/<int:vehicle_id>/edit", methods=["GET", "POST"])
@@ -723,7 +729,7 @@ def verify_delete_document_otp(vehicle_id, document_id):
 @main.route("/profile/edit", methods=["GET", "POST"])
 @login_required
 def edit_profile():
-    form = RegistrationForm()  # Use the appropriate form class
+    form = RegistrationForm()
     if form.validate_on_submit():
         current_user.username = form.username.data
         current_user.email = form.email.data
@@ -738,28 +744,90 @@ def edit_profile():
 @main.route("/profile/update_password", methods=["GET", "POST"])
 @login_required
 def update_password():
-    form = ResetPasswordForm()  # Assuming you have a form to update password
+    form = UpdatePasswordForm()
     if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
-        current_user.password = hashed_password
-        db.session.commit()
-        flash("Your password has been updated!", "success")
-        return redirect(url_for('main.profile'))
+        if bcrypt.check_password_hash(current_user.password, form.current_password.data):
+            hashed_password = bcrypt.generate_password_hash(form.new_password.data).decode("utf-8")
+            current_user.password = hashed_password
+            db.session.commit()
+            flash("Your password has been updated!", "success")
+            return redirect(url_for('main.profile'))
+        else:
+            flash("Current password is incorrect, please try again.", "danger")
     return render_template('update_password.html', form=form)
 
-@main.route("/profile/manage_notifications")
+@main.route("/profile/manage_notifications", methods=["GET", "POST"])
 @login_required
 def manage_notifications():
-    # Logic to manage notifications
-    return render_template('manage_notifications.html')
+    form = ManageNotificationsForm()
+    if form.validate_on_submit():
+        # Update user notification preferences
+        current_user.notifications_enabled = form.notifications_enabled.data
+        db.session.commit()
+        flash("Notification preferences updated.", "success")
+        return redirect(url_for('main.profile'))
+    return render_template('manage_notifications.html', form=form)
 
-@main.route("/profile/adjust_privacy_settings")
+@main.route("/profile/adjust_privacy_settings", methods=["GET", "POST"])
 @login_required
 def adjust_privacy_settings():
-    # Logic to manage notifications
-    return render_template('adjust_privacy_settings.html')
+    form = AdjustPrivacySettingsForm()
+    if form.validate_on_submit():
+        # Update user privacy settings
+        current_user.privacy_settings = form.privacy_settings.data
+        db.session.commit()
+        flash("Privacy settings updated.", "success")
+        return redirect(url_for('main.profile'))
+    return render_template('adjust_privacy_settings.html', form=form)
 
+@main.route("/profile/upload_document", methods=["GET", "POST"])
+@login_required
+def upload_document():
+    form = DocumentForm()
+    if form.validate_on_submit():
+        document = Document(
+            document_type=form.document_type.data,
+            start_date=form.start_date.data,
+            end_date=form.end_date.data,
+            user_id=current_user.id
+        )
+        db.session.add(document)
+        db.session.commit()
+        flash("Your document has been uploaded!", "success")
+        return redirect(url_for("main.profile"))
+    return render_template("upload_document.html", form=form)
 
+@main.route("/profile/download_document/<int:document_id>")
+@login_required
+def download_document(document_id):
+    document = Document.query.get_or_404(document_id)
+    if document.user_id != current_user.id:
+        abort(403)
+    return send_file(document.file_path, as_attachment=True)
+
+@main.route("/profile/delete_document/<int:document_id>", methods=["POST"])
+@login_required
+def delete_profile_document(document_id):
+    document = Document.query.get_or_404(document_id)
+    if document.user_id != current_user.id:
+        abort(403)
+    db.session.delete(document)
+    db.session.commit()
+    flash("Your document has been deleted!", "success")
+    return redirect(url_for("main.profile"))
+
+@main.route("/profile/search_documents", methods=["GET"])
+@login_required
+def search_documents():
+    query = request.args.get('query')
+    documents = Document.query.filter(
+        Document.user_id == current_user.id,
+        (Document.document_type.like(f"%{query}%") |
+         Document.start_date.like(f"%{query}%") |
+         Document.end_date.like(f"%{query}%"))
+    ).all()
+    flash(f"Showing results for: {query}", "info")
+    return render_template("profile.html", documents=documents)
 
 @main.route("/profile/help_center")
 def help_center():
@@ -768,7 +836,7 @@ def help_center():
 @main.route("/profile/feedback_form", methods=["GET", "POST"])
 @login_required
 def feedback_form():
-    form = FeedbackForm() 
+    form = FeedbackForm()
     if form.validate_on_submit():
         feedback = Feedback(
             user_id=current_user.id,
@@ -780,7 +848,6 @@ def feedback_form():
         flash("Thank you for your feedback!", "success")
         return redirect(url_for('main.profile'))
     return render_template('feedback_form.html', form=form)
-
 
 # Setup basic logging configuration
 logging.basicConfig(level=logging.INFO)

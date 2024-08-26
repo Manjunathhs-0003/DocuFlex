@@ -8,6 +8,7 @@ from wtforms import (
     DateField,
     IntegerField,
     FloatField,
+    TextAreaField,
 )
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Regexp, Optional
 from app.models import User, Vehicle
@@ -221,3 +222,28 @@ class ResetPasswordForm(FlaskForm):
 class OTPDeletionForm(FlaskForm):
     otp = IntegerField("OTP", validators=[DataRequired()])
     submit = SubmitField("Verify OTP and Delete")
+
+class UpdatePasswordForm(FlaskForm):
+    current_password = PasswordField('Current Password', validators=[DataRequired()])
+    new_password = PasswordField('New Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm New Password', validators=[DataRequired(), EqualTo('new_password')])
+    submit = SubmitField('Update Password')
+
+class ManageNotificationsForm(FlaskForm):
+    notifications_enabled = BooleanField('Enable Notifications')
+    submit = SubmitField('Save Changes')
+
+class AdjustPrivacySettingsForm(FlaskForm):
+    privacy_settings = SelectField('Privacy Settings', choices=[('public', 'Public'), ('private', 'Private'), ('custom', 'Custom')], validators=[DataRequired()])
+    submit = SubmitField('Save Changes')
+
+class DocumentForm(FlaskForm):
+    document_type = SelectField("Document Type", choices=[("Insurance", "Insurance"), ("Emission Certificate", "Emission Certificate"), ("Permit", "Permit"), ("Fitness Certificate", "Fitness Certificate"), ("Road Tax", "Road Tax")], validators=[DataRequired()])
+    serial_number = StringField("Serial Number", validators=[Optional()])
+    start_date = DateField("Start Date", format="%Y-%m-%d", validators=[Optional()])
+    end_date = DateField("End Date", format="%Y-%m-%d", validators=[Optional()])
+    submit = SubmitField("Add Document")
+
+class FeedbackForm(FlaskForm):
+    feedback = TextAreaField('Feedback', validators=[DataRequired()])
+    submit = SubmitField('Submit Feedback')
