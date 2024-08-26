@@ -12,7 +12,10 @@ from wtforms import (
 )
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Regexp, Optional
 from app.models import User, Vehicle
-
+from flask_wtf import FlaskForm
+from wtforms import StringField, DateField, SelectField, FloatField, SubmitField
+from wtforms.validators import DataRequired, Optional, Regexp
+from flask_login import current_user
 
 class RegistrationForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired()])
@@ -56,6 +59,35 @@ class RegistrationForm(FlaskForm):
             self.phone.data = f"+91{self.phone.data}"
         return rv
 
+class ProfileForm(FlaskForm):
+    username = StringField("Username", validators=[DataRequired()])
+    email = StringField("Email", validators=[DataRequired(), Email()])
+    phone = StringField(
+        "Phone",
+        validators=[
+            DataRequired(),
+            Regexp(r"^\d{10}$", message="Invalid phone number. Must be 10 digits.")
+        ]
+    )
+    submit = SubmitField("Save Changes")
+
+    def validate_username(self, username):
+        user = User.query.filter_by(username=username.data).first()
+        if user and user.id != current_user.id:
+            raise ValidationError("This username is taken. Please choose a different one.")
+
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user and user.id != current_user.id:
+            raise ValidationError("This email is taken. Please choose a different one.")
+
+    def validate_phone(self, phone):
+        phone_with_prefix = f"+91{phone.data}"
+        user = User.query.filter(
+            (User.phone == phone.data) | (User.phone == phone_with_prefix)
+        ).first()
+        if user and user.id != current_user.id:
+            raise ValidationError("This phone number is already registered.")
 
 class LoginForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired(), Email()])
@@ -99,10 +131,6 @@ class VehicleForm(FlaskForm):
                 "This vehicle number is already registered. Please choose a different one."
             )
 
-
-from flask_wtf import FlaskForm
-from wtforms import StringField, DateField, SelectField, FloatField, SubmitField
-from wtforms.validators import DataRequired, Optional, Regexp
 
 class DocumentForm(FlaskForm):
     document_type = SelectField(

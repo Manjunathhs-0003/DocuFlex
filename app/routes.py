@@ -28,6 +28,7 @@ from app.forms import (
     AdjustPrivacySettingsForm, 
     DocumentForm, 
     FeedbackForm,
+    ProfileForm,
 )
 from app.notification_utils import send_notification
 from sqlalchemy.exc import IntegrityError
@@ -785,17 +786,74 @@ def verify_delete_document_otp(vehicle_id, document_id):
 @main.route("/profile/edit", methods=["GET", "POST"])
 @login_required
 def edit_profile():
-    form = RegistrationForm()
+    form = ProfileForm()
+
     if form.validate_on_submit():
+        print("Form validated")
+        print(f"Username: {form.username.data} Email: {form.email.data} Phone: {form.phone.data}")
+
         current_user.username = form.username.data
         current_user.email = form.email.data
-        db.session.commit()
-        flash("Your profile has been updated!", "success")
+        new_phone = f"+91{form.phone.data}"
+
+        # Handling phone number change
+        if new_phone != current_user.phone:
+            print(f"Phone number changed from {current_user.phone} to {new_phone}")
+            # Send OTP for new phone verification
+            session['new_phone'] = new_phone
+            otp = random.randint(100000, 999999)
+            session["otp"] = otp
+            send_sms(new_phone, f"Your OTP code is {otp}")
+            flash("An OTP has been sent to your new phone number. Please verify to complete the change.", "info")
+            return redirect(url_for('main.verify_phone_change_otp'))
+
+        try:
+            db.session.commit()
+            flash("Your profile has been updated!", "success")
+            print("Profile updated successfully")
+        except Exception as e:
+            db.session.rollback()
+            flash("An error occurred while updating your profile. Please try again.", "danger")
+            print(f"Error updating profile: {e}")
         return redirect(url_for('main.profile'))
+    
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.email.data = current_user.email
+        form.phone.data = current_user.phone[3:] if current_user.phone.startswith('+91') else current_user.phone
+
+    # Print for verification
+    print(f"GET username: {form.username.data} Email: {form.email.data} Phone: {form.phone.data}")
+
     return render_template('edit_profile.html', form=form)
+
+@main.route("/profile/verify_phone_change_otp", methods=["GET", "POST"])
+@login_required
+def verify_phone_change_otp():
+    form = OTPForm()
+
+    if form.validate_on_submit():
+        provided_otp = form.otp.data
+        if "otp" in session and session["otp"] == provided_otp:
+            new_phone = session.get('new_phone')
+            if new_phone:
+                current_user.phone = new_phone
+                try:
+                    db.session.commit()
+                    session.pop("otp", None)
+                    session.pop("new_phone", None)
+                    flash("Your phone number has been updated successfully!", "success")
+                    return redirect(url_for('main.profile'))
+                except Exception as e:
+                    db.session.rollback()
+                    flash("An error occurred while updating your phone number. Please try again.", "danger")
+                    print(f"Error updating phone number: {e}")
+            else:
+                flash("No phone number change request found.", "danger")
+        else:
+            flash("Invalid OTP. Please try again.", "danger")
+
+    return render_template('verify_phone_change_otp.html', form=form)
 
 @main.route("/profile/update_password", methods=["GET", "POST"])
 @login_required
