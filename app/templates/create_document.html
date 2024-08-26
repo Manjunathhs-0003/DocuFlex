@@ -5,12 +5,14 @@
 {% block content %}
 <div class="container">
     <h1 class="mt-4">Add New Document</h1>
-    <form method="POST" action="">
+    <form method="POST">
         {{ form.hidden_tag() }}
         <div class="form-group">
             {{ form.document_type.label(class="form-label") }}<br>
             {{ form.document_type(class="form-control", id="document_type") }}
         </div>
+
+        <!-- GENERAL FIELDS -->
         <div id="common-fields">
             <div class="form-group">
                 {{ form.serial_number.label(class="form-label") }}<br>
@@ -25,6 +27,8 @@
                 {{ form.end_date(class="form-control", type="date") }}
             </div>
         </div>
+
+        <!-- INSURANCE FIELDS -->
         <div id="insurance-fields" style="display:none;">
             <div class="form-group">
                 {{ form.insurance_policy_number.label(class="form-label") }}<br>
@@ -47,6 +51,8 @@
                 {{ form.policy_coverage_amount(class="form-control") }}
             </div>
         </div>
+
+        <!-- EMISSION CERTIFICATE FIELDS -->
         <div id="emission-fields" style="display:none;">
             <div class="form-group">
                 {{ form.emission_certificate_number.label(class="form-label") }}<br>
@@ -61,6 +67,8 @@
                 {{ form.emission_end_date(class="form-control", type="date") }}
             </div>
         </div>
+
+        <!-- PERMIT FIELDS -->
         <div id="permit-fields" style="display:none;">
             <div class="form-group">
                 {{ form.permit_number.label(class="form-label") }}<br>
@@ -79,6 +87,8 @@
                 {{ form.permit_end_date(class="form-control", type="date") }}
             </div>
         </div>
+
+        <!-- FITNESS CERTIFICATE FIELDS -->
         <div id="fitness-fields" style="display:none;">
             <div class="form-group">
                 {{ form.fitness_certificate_number.label(class="form-label") }}<br>
@@ -97,6 +107,8 @@
                 {{ form.fitness_end_date(class="form-control", type="date") }}
             </div>
         </div>
+
+        <!-- ROAD TAX FIELDS -->
         <div id="road-tax-fields" style="display:none;">
             <div class="form-group">
                 {{ form.road_tax_receipt_number.label(class="form-label") }}<br>
@@ -111,6 +123,8 @@
                 {{ form.road_tax_payment_date(class="form-control", type="date") }}
             </div>
         </div>
+
+        <!-- SUBMIT BUTTON -->
         <div class="form-group">
             {{ form.submit(class="btn btn-primary") }}
         </div>
@@ -137,13 +151,13 @@
 
         if (docType === 'Insurance') {
             insuranceFields.style.display = 'block';
-        } else if(docType === 'Emission Certificate') {
+        } else if (docType === 'Emission Certificate') {
             emissionFields.style.display = 'block';
-        } else if(docType === 'Permit') {
+        } else if (docType === 'Permit') {
             permitFields.style.display = 'block';
-        } else if(docType === 'Fitness Certificate') {
+        } else if (docType === 'Fitness Certificate') {
             fitnessFields.style.display = 'block';
-        } else if(docType === 'Road Tax') {
+        } else if (docType === 'Road Tax') {
             roadTaxFields.style.display = 'block';
         } else {
             commonFields.style.display = 'block';

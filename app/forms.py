@@ -95,6 +95,10 @@ class VehicleForm(FlaskForm):
             )
 
 
+from flask_wtf import FlaskForm
+from wtforms import StringField, DateField, SelectField, FloatField, SubmitField
+from wtforms.validators import DataRequired, Optional, Regexp
+
 class DocumentForm(FlaskForm):
     document_type = SelectField(
         "Document Type",
@@ -102,8 +106,8 @@ class DocumentForm(FlaskForm):
             ("Insurance", "Insurance"),
             ("Emission Certificate", "Emission Certificate"),
             ("Permit", "Permit"),
-            ("Fitness Certificate", "Fitness Certificate"),  # Add Fitness Certificate
-            ("Road Tax", "Road Tax"),  # Add Road Tax
+            ("Fitness Certificate", "Fitness Certificate"),
+            ("Road Tax", "Road Tax"),
         ],
         validators=[DataRequired()],
     )
@@ -117,23 +121,27 @@ class DocumentForm(FlaskForm):
     policy_start_date = DateField("Policy Start Date", format="%Y-%m-%d", validators=[Optional()])
     policy_expiry_date = DateField("Policy Expiry Date", format="%Y-%m-%d", validators=[Optional()])
     policy_coverage_amount = FloatField("Policy Coverage Amount", validators=[Optional()])
-
+    
+    
     # Emission Certificate Fields
     emission_certificate_number = StringField("Certificate Number", validators=[Optional()])
     emission_start_date = DateField("Certificate Start Date", format="%Y-%m-%d", validators=[Optional()])
     emission_end_date = DateField("Certificate End Date", format="%Y-%m-%d", validators=[Optional()])
+
 
     # Permit Fields
     permit_number = StringField("Permit Number", validators=[Optional()])
     issuing_authority = StringField("Issuing Authority", validators=[Optional()])
     permit_start_date = DateField("Permit Start Date", format="%Y-%m-%d", validators=[Optional()])
     permit_end_date = DateField("Permit End Date", format="%Y-%m-%d", validators=[Optional()])
-    
+
+    # Fitness Certificate Fields
     fitness_certificate_number = StringField("Fitness Certificate Number", validators=[Optional()])
     fitness_issuing_authority = StringField("Issuing Authority", validators=[Optional()])
     fitness_start_date = DateField("Fitness Start Date", format="%Y-%m-%d", validators=[Optional()])
     fitness_end_date = DateField("Fitness End Date", format="%Y-%m-%d", validators=[Optional()])
-    
+
+    # Road Tax Fields
     road_tax_receipt_number = StringField("Receipt Number", validators=[Optional()])
     road_tax_amount = FloatField("Amount Paid", validators=[Optional()])
     road_tax_payment_date = DateField("Payment Date", format="%Y-%m-%d", validators=[Optional()])
@@ -141,61 +149,59 @@ class DocumentForm(FlaskForm):
     submit = SubmitField("Add Document")
 
     def update_fields(self, document_type):
-        # Reset validators to base state
-        self.serial_number.validators = [Optional()]
-        self.start_date.validators = [Optional()]
-        self.end_date.validators = [Optional()]
-        self.insurance_policy_number.validators = [Optional()]
-        self.insurance_company_name.validators = [Optional()]
-        self.policy_start_date.validators = [Optional()]
-        self.policy_expiry_date.validators = [Optional()]
-        self.policy_coverage_amount.validators = [Optional()]
-        self.emission_certificate_number.validators = [Optional()]
-        self.emission_start_date.validators = [Optional()]
-        self.emission_end_date.validators = [Optional()]
-        self.permit_number.validators = [Optional()]
-        self.issuing_authority.validators = [Optional()]
-        self.permit_start_date.validators = [Optional()]
-        self.permit_end_date.validators = [Optional()]
-        self.fitness_certificate_number.validators = [Optional()]
-        self.fitness_issuing_authority.validators = [Optional()]
-        self.fitness_start_date.validators = [Optional()]
-        self.fitness_end_date.validators = [Optional()]
-        self.road_tax_receipt_number.validators = [Optional()]
-        self.road_tax_amount.validators = [Optional()]
-        self.road_tax_payment_date.validators = [Optional()]
+            # Reset validators to base state
+            self.serial_number.validators = [Optional()]
+            self.start_date.validators = [Optional()]
+            self.end_date.validators = [Optional()]
+            self.insurance_policy_number.validators = [Optional()]
+            self.insurance_company_name.validators = [Optional()]
+            self.policy_start_date.validators = [Optional()]
+            self.policy_expiry_date.validators = [Optional()]
+            self.policy_coverage_amount.validators = [Optional()]
+            self.emission_certificate_number.validators = [Optional()]
+            self.emission_start_date.validators = [Optional()]
+            self.emission_end_date.validators = [Optional()]
+            self.permit_number.validators = [Optional()]
+            self.issuing_authority.validators = [Optional()]
+            self.permit_start_date.validators = [Optional()]
+            self.permit_end_date.validators = [Optional()]
+            self.fitness_certificate_number.validators = [Optional()]
+            self.fitness_issuing_authority.validators = [Optional()]
+            self.fitness_start_date.validators = [Optional()]
+            self.fitness_end_date.validators = [Optional()]
+            self.road_tax_receipt_number.validators = [Optional()]
+            self.road_tax_amount.validators = [Optional()]
+            self.road_tax_payment_date.validators = [Optional()]
 
-        if document_type == 'Insurance':
-            self.serial_number.validators = [Optional()]  # This will hold the policy number
-            self.start_date.validators = [Optional()]  # The policy start date
-            self.end_date.validators = [Optional()]  # The policy expiry date
-            self.insurance_policy_number.validators = [DataRequired(), Regexp(r'^\d{16}$', message="Policy number must be 16 digits.")]
-            self.insurance_company_name.validators = [DataRequired()]
-            self.policy_start_date.validators = [DataRequired()]
-            self.policy_expiry_date.validators = [DataRequired()]
-            self.policy_coverage_amount.validators = [DataRequired()]
-        elif document_type == 'Emission Certificate':
-            self.emission_certificate_number.validators = [DataRequired()]
-            self.emission_start_date.validators = [DataRequired()]
-            self.emission_end_date.validators = [DataRequired()]
-        elif document_type == 'Permit':
-            self.permit_number.validators = [DataRequired()]
-            self.issuing_authority.validators = [DataRequired()]
-            self.permit_start_date.validators = [DataRequired()]
-            self.permit_end_date.validators = [DataRequired()]
-        elif document_type == 'Fitness Certificate':
-            self.fitness_certificate_number.validators = [DataRequired()]
-            self.fitness_issuing_authority.validators = [DataRequired()]
-            self.fitness_start_date.validators = [DataRequired()]
-            self.fitness_end_date.validators = [DataRequired()]
-        elif document_type == 'Road Tax':
-            self.road_tax_receipt_number.validators = [DataRequired()]
-            self.road_tax_amount.validators = [DataRequired()]
-            self.road_tax_payment_date.validators = [DataRequired()]
-        else:
-            self.serial_number.validators = [DataRequired()]
-            self.start_date.validators = [DataRequired()]
-            self.end_date.validators = [DataRequired()]
+            if document_type == 'Insurance':
+                self.serial_number.validators = [Optional()]
+                self.insurance_policy_number.validators = [DataRequired(), Regexp(r'^\d{16}$', message="Policy number must be 16 digits.")]
+                self.insurance_company_name.validators = [DataRequired()]
+                self.policy_start_date.validators = [DataRequired()]
+                self.policy_expiry_date.validators = [DataRequired()]
+                self.policy_coverage_amount.validators = [DataRequired()]
+            elif document_type == 'Emission Certificate':
+                self.emission_certificate_number.validators = [DataRequired()]
+                self.emission_start_date.validators = [DataRequired()]
+                self.emission_end_date.validators = [DataRequired()]
+            elif document_type == 'Permit':
+                self.permit_number.validators = [DataRequired()]
+                self.issuing_authority.validators = [DataRequired()]
+                self.permit_start_date.validators = [DataRequired()]
+                self.permit_end_date.validators = [DataRequired()]
+            elif document_type == 'Fitness Certificate':
+                self.fitness_certificate_number.validators = [DataRequired()]
+                self.fitness_issuing_authority.validators = [DataRequired()]
+                self.fitness_start_date.validators = [DataRequired()]
+                self.fitness_end_date.validators = [DataRequired()]
+            elif document_type == 'Road Tax':
+                self.road_tax_receipt_number.validators = [DataRequired()]
+                self.road_tax_amount.validators = [DataRequired()]
+                self.road_tax_payment_date.validators = [DataRequired()]
+            else:
+                self.serial_number.validators = [DataRequired()]
+                self.start_date.validators = [DataRequired()]
+                self.end_date.validators = [DataRequired()]
 
         
 
@@ -237,12 +243,7 @@ class AdjustPrivacySettingsForm(FlaskForm):
     privacy_settings = SelectField('Privacy Settings', choices=[('public', 'Public'), ('private', 'Private'), ('custom', 'Custom')], validators=[DataRequired()])
     submit = SubmitField('Save Changes')
 
-class DocumentForm(FlaskForm):
-    document_type = SelectField("Document Type", choices=[("Insurance", "Insurance"), ("Emission Certificate", "Emission Certificate"), ("Permit", "Permit"), ("Fitness Certificate", "Fitness Certificate"), ("Road Tax", "Road Tax")], validators=[DataRequired()])
-    serial_number = StringField("Serial Number", validators=[Optional()])
-    start_date = DateField("Start Date", format="%Y-%m-%d", validators=[Optional()])
-    end_date = DateField("End Date", format="%Y-%m-%d", validators=[Optional()])
-    submit = SubmitField("Add Document")
+
 
 class FeedbackForm(FlaskForm):
     feedback = TextAreaField('Feedback', validators=[DataRequired()])

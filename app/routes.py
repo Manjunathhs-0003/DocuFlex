@@ -297,7 +297,10 @@ def add_document(vehicle_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
     form = DocumentForm()
     if form.validate_on_submit():
-        form.update_fields(form.document_type.data)
+        form.update_fields(form.document_type.data)  # Update fields based on document_type
+
+        # Add the user_id for document creation
+        user_id = current_user.id
 
         additional_info = {}
         if form.document_type.data == "Insurance":
@@ -307,12 +310,11 @@ def add_document(vehicle_id):
                 start_date=form.policy_start_date.data,
                 end_date=form.policy_expiry_date.data,
                 vehicle=vehicle,
-                additional_info=json.dumps(
-                    {
-                        "insurance_company_name": form.insurance_company_name.data,
-                        "policy_coverage_amount": form.policy_coverage_amount.data,
-                    }
-                ),
+                user_id=user_id,
+                additional_info=json.dumps({
+                    "insurance_company_name": form.insurance_company_name.data,
+                    "policy_coverage_amount": form.policy_coverage_amount.data
+                }),
             )
         elif form.document_type.data == "Emission Certificate":
             document = Document(
@@ -321,6 +323,7 @@ def add_document(vehicle_id):
                 start_date=form.emission_start_date.data,
                 end_date=form.emission_end_date.data,
                 vehicle=vehicle,
+                user_id=user_id,
             )
         elif form.document_type.data == "Permit":
             document = Document(
@@ -328,10 +331,11 @@ def add_document(vehicle_id):
                 serial_number=form.permit_number.data,
                 start_date=form.permit_start_date.data,
                 end_date=form.permit_end_date.data,
-                additional_info=json.dumps(
-                    {"issuing_authority": form.issuing_authority.data}
-                ),
+                additional_info=json.dumps({
+                    "issuing_authority": form.issuing_authority.data
+                }),
                 vehicle=vehicle,
+                user_id=user_id,
             )
         elif form.document_type.data == "Fitness Certificate":
             document = Document(
@@ -339,10 +343,11 @@ def add_document(vehicle_id):
                 serial_number=form.fitness_certificate_number.data,
                 start_date=form.fitness_start_date.data,
                 end_date=form.fitness_end_date.data,
-                additional_info=json.dumps(
-                    {"issuing_authority": form.fitness_issuing_authority.data}
-                ),
+                additional_info=json.dumps({
+                    "issuing_authority": form.fitness_issuing_authority.data
+                }),
                 vehicle=vehicle,
+                user_id=user_id,
             )
         elif form.document_type.data == "Road Tax":
             document = Document(
@@ -350,8 +355,11 @@ def add_document(vehicle_id):
                 serial_number=form.road_tax_receipt_number.data,
                 start_date=form.road_tax_payment_date.data,  # Use payment date as start_date for storage
                 end_date=form.road_tax_payment_date.data,  # Store end_date as the same payment date, for simplicity
-                additional_info=json.dumps({"amount_paid": form.road_tax_amount.data}),
+                additional_info=json.dumps({
+                    "amount_paid": form.road_tax_amount.data
+                }),
                 vehicle=vehicle,
+                user_id=user_id,
             )
         else:
             document = Document(
@@ -360,6 +368,7 @@ def add_document(vehicle_id):
                 start_date=form.start_date.data,
                 end_date=form.end_date.data,
                 vehicle=vehicle,
+                user_id=user_id,
             )
 
         db.session.add(document)
