@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container">
     <h1 class="mt-4">Feedback Form</h1>
-    <form method="POST">
+    <form method="POST" action="{{ url_for('main.feedback_form') }}">
         {{ form.hidden_tag() }}
         <div class="mb-3">
             {{ form.feedback.label(class="form-label") }}

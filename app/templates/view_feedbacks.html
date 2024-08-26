@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}View Feedbacks - Fleet Management{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-4">User Feedbacks</h1>
+    <div class="list-group">
+        {% for feedback in feedbacks %}
+        <div class="list-group-item">
+            <h5>User: {{ feedback.user.username }}</h5>
+            <p>Feedback: {{ feedback.feedback_text }}</p>
+            <small class="text-muted">Submitted on: {{ feedback.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

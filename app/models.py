@@ -13,6 +13,7 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(60), nullable=False)
     vehicles = db.relationship("Vehicle", backref="owner", lazy=True)
     compliance_alerts = db.relationship('ComplianceAlert', backref='user', lazy=True)
+    feedbacks = db.relationship('Feedback', backref='user', lazy=True)
 
 
 class Vehicle(db.Model):
@@ -58,3 +59,12 @@ class Log(db.Model):
 
     def __repr__(self):
         return f"<Log {self.action}>"
+    
+class Feedback(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    feedback_text = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Feedback {self.feedback_text}>"

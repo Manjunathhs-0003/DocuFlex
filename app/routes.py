@@ -13,7 +13,7 @@ import json
 from app.forms import OTPDeletionForm
 from flask_login import login_user, current_user, logout_user, login_required
 from app import db, bcrypt
-from app.models import User, Vehicle, Document, Log
+from app.models import User, Vehicle, Document, Log, Feedback
 from app.forms import (
     RegistrationForm,
     LoginForm,
@@ -957,11 +957,22 @@ def feedback_form():
             feedback_text=form.feedback.data,
             timestamp=datetime.utcnow()
         )
-        db.session.add(feedback)
-        db.session.commit()
-        flash("Thank you for your feedback!", "success")
+        try:
+            db.session.add(feedback)
+            db.session.commit()
+            flash("Thank you for your feedback!", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash("An error occurred while saving your feedback. Please try again.", "danger")
+            print(f"Error saving feedback: {e}")
         return redirect(url_for('main.profile'))
     return render_template('feedback_form.html', form=form)
+
+@main.route("/feedbacks")
+@login_required
+def view_feedbacks():
+    feedbacks = Feedback.query.order_by(Feedback.timestamp.desc()).all()
+    return render_template("view_feedbacks.html", feedbacks=feedbacks)
 
 # Setup basic logging configuration
 logging.basicConfig(level=logging.INFO)
