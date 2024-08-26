@@ -14,6 +14,7 @@ class User(db.Model, UserMixin):
     vehicles = db.relationship("Vehicle", backref="owner", lazy=True)
     compliance_alerts = db.relationship('ComplianceAlert', backref='user', lazy=True)
     feedbacks = db.relationship('Feedback', backref='user', lazy=True)
+    logs = db.relationship('Log', backref='user', lazy=True)
 
 
 class Vehicle(db.Model):
@@ -53,9 +54,9 @@ class Document(db.Model):
 
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     action = db.Column(db.String(255), nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def __repr__(self):
         return f"<Log {self.action}>"

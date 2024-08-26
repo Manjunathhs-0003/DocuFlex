@@ -1,27 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}View Logs{% endblock %}
+{% block title %}View Logs - Fleet Management{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h1 class="mt-4">User Action Logs</h1>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th scope="col">Timestamp</th>
-                <th scope="col">User</th>
-                <th scope="col">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for log in logs %}
-            <tr>
-                <td>{{ log.timestamp }}</td>
-                <td>{{ log.user.username if log.user else "Anonymous" }}</td>
-                <td>{{ log.action }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <h1 class="mt-4">User Actions Log</h1>
+    <div class="list-group">
+        {% for log in logs %}
+        <div class="list-group-item">
+            <h5>User: {{ log.user.username if log.user else "Anonymous" }}</h5>
+            <p>Action: {{ log.action }}</p>
+            <small class="text-muted">Timestamp: {{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+        </div>
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}

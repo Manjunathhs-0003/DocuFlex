@@ -10,7 +10,7 @@
 
         <div class="form-group">
             {{ form.document_type.label(class="form-label") }}<br>
-            {{ form.document_type(class="form-control", id="document_type") }}
+            {{ form.document_type(class="form-control", id="document_type", readonly=True) }}
         </div>
 
         <!-- FIELDS FOR INSURANCE -->
@@ -118,8 +118,16 @@
 
 <!-- JavaScript to toggle fields based on document type -->
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var docType = document.getElementById('document_type').value;
+        toggleFieldsByDocType(docType); // Initialize fields based on current docType
+    });
+
     document.getElementById('document_type').onchange = function() {
-        var docType = this.value;
+        toggleFieldsByDocType(this.value);
+    };
+
+    function toggleFieldsByDocType(docType) {
         var insuranceFields = document.getElementById('insurance-fields');
         var emissionFields = document.getElementById('emission-fields');
         var permitFields = document.getElementById('permit-fields');
@@ -143,9 +151,6 @@
         } else if (docType === 'Road Tax') {
             roadTaxFields.style.display = 'block';
         }
-    };
-
-    // Trigger change event to set the correct initial state
-    document.getElementById('document_type').onchange();
+    }
 </script>
 {% endblock %}

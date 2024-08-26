@@ -251,31 +251,6 @@ def logout():
     return redirect(url_for("main.index"))
 
 
-@main.route("/vehicle/new", methods=["GET", "POST"])
-@login_required
-@log_action_decorator("User creating a new vehicle")
-def new_vehicle():
-    form = VehicleForm()
-    if form.validate_on_submit():
-        vehicle = Vehicle(
-            name=form.name.data,
-            vehicle_number=form.vehicle_number.data,
-            owner=current_user,
-        )
-        try:
-            db.session.add(vehicle)
-            db.session.commit()
-            flash("Your vehicle has been created!", "success")
-            log_action(f"User {current_user.username} created vehicle {vehicle.name}")
-            return redirect(url_for("main.list_vehicles"))
-        except IntegrityError:
-            db.session.rollback()
-            flash(
-                "Vehicle number already exists. Please use a different vehicle number.",
-                "danger",
-            )
-
-    return render_template("create_vehicle.html", form=form)
 
 
 @main.route("/vehicle/<int:vehicle_id>")
@@ -404,16 +379,40 @@ def edit_vehicle(vehicle_id):
     if vehicle.owner != current_user:
         abort(403)
 
-    form = VehicleForm(obj=vehicle, vehicle_id=vehicle_id)
+    form = VehicleForm(obj=vehicle)
     if form.validate_on_submit():
         vehicle.name = form.name.data
         vehicle.vehicle_number = form.vehicle_number.data
         db.session.commit()
         flash("Your vehicle has been updated!", "success")
-        log_action(f"User {current_user.username} edited vehicle {vehicle.name}")
+        log_action(current_user, f"User {current_user.username} edited vehicle {vehicle.name}")
         return redirect(url_for("main.list_vehicles"))
 
     return render_template("edit_vehicle.html", form=form)
+
+# Ensure other routes also call log_action correctly
+@main.route("/vehicle/new", methods=["GET", "POST"])
+@login_required
+def new_vehicle():
+    form = VehicleForm()
+    if form.validate_on_submit():
+        vehicle = Vehicle(
+            name=form.name.data,
+            vehicle_number=form.vehicle_number.data,
+            owner=current_user,
+        )
+        try:
+            db.session.add(vehicle)
+            db.session.commit()
+            flash("Your vehicle has been created!", "success")
+            log_action(current_user, f"User {current_user.username} created vehicle {vehicle.name}")
+            return redirect(url_for("main.list_vehicles"))
+        except IntegrityError:
+            db.session.rollback()
+            flash("Vehicle number already exists. Please use a different vehicle number.", "danger")
+            log_action(current_user, f"User {current_user.username} failed to create vehicle {vehicle.name} due to duplicate vehicle number")
+
+    return render_template("create_vehicle.html", form=form)
 
 
 @main.route("/vehicle/<int:vehicle_id>/delete", methods=["POST"])
@@ -451,13 +450,17 @@ def delete_vehicle(vehicle_id):
 def edit_document(vehicle_id, document_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
     document = Document.query.get_or_404(document_id)
+    
     if vehicle.owner != current_user or document.vehicle_id != vehicle.id:
         abort(403)
 
     form = DocumentForm(obj=document)
-    form.update_fields(document.document_type)  # Update fields for the specific document type
+    form.update_fields(document.document_type)
 
     if form.validate_on_submit():
+        # Debug print to check form data
+        print("Form data:", form.data)
+        
         if document.document_type == "Insurance":
             document.serial_number = form.insurance_policy_number.data
             document.start_date = form.policy_start_date.data
@@ -496,12 +499,21 @@ def edit_document(vehicle_id, document_id):
             document.start_date = form.start_date.data
             document.end_date = form.end_date.data
 
-        db.session.commit()
-        flash("Your document has been updated!", "success")
-        return redirect(url_for("main.view_vehicle", vehicle_id=vehicle.id))
-    
-    elif request.method == "GET":
-         # Pre-fill the form with document data based on the document type
+        print("Document updated:", document)
+
+        try:
+            db.session.commit()
+            print("Changes committed to the database.")
+            flash("Your document has been updated!", "success")
+            log_action(current_user, f"User {current_user.username} edited document {document.document_type}")
+            return redirect(url_for("main.view_vehicle", vehicle_id=vehicle.id))
+        except Exception as e:
+            print("Error committing to the database:", e)
+            db.session.rollback()
+            flash("An error occurred while saving your changes. Please try again.", "danger")
+
+    # Pre-fill form fields upon GET request
+    if request.method == "GET":
         if document.document_type == "Insurance":
             form.insurance_policy_number.data = document.serial_number
             form.policy_start_date.data = document.start_date
@@ -527,7 +539,7 @@ def edit_document(vehicle_id, document_id):
             form.fitness_issuing_authority.data = additional_info.get("issuing_authority", "")
         elif document.document_type == "Road Tax":
             form.road_tax_receipt_number.data = document.serial_number
-            form.road_tax_payment_date.data = document.start_date  # Assuming start_date and end_date are the same for Road Tax
+            form.road_tax_payment_date.data = document.start_date
             additional_info = json.loads(document.additional_info)
             form.road_tax_amount.data = additional_info.get("amount_paid", "")
         else:
@@ -961,10 +973,11 @@ def feedback_form():
             db.session.add(feedback)
             db.session.commit()
             flash("Thank you for your feedback!", "success")
+            log_action(current_user, f"User {current_user.username} submitted feedback")
         except Exception as e:
             db.session.rollback()
             flash("An error occurred while saving your feedback. Please try again.", "danger")
-            print(f"Error saving feedback: {e}")
+            log_action(current_user, f"User {current_user.username} failed to submit feedback: {e}")
         return redirect(url_for('main.profile'))
     return render_template('feedback_form.html', form=form)
 
