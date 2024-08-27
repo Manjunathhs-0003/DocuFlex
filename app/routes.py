@@ -923,13 +923,13 @@ def upload_document():
         return redirect(url_for("main.profile"))
     return render_template("upload_document.html", form=form)
 
-@main.route("/profile/download_document/<int:document_id>")
-@login_required
-def download_document(document_id):
-    document = Document.query.get_or_404(document_id)
-    if document.user_id != current_user.id:
-        abort(403)
-    return send_file(document.file_path, as_attachment=True)
+# @main.route("/profile/download_document/<int:document_id>")
+# @login_required
+# def download_document(document_id):
+#     document = Document.query.get_or_404(document_id)
+#     if document.user_id != current_user.id:
+#         abort(403)
+#     return send_file(document.file_path, as_attachment=True)
 
 @main.route("/profile/delete_document/<int:document_id>", methods=["POST"])
 @login_required
