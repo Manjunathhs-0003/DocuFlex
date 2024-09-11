@@ -1,36 +1,43 @@
 # reset_db.py
-from app import create_app, db
-from flask_migrate import upgrade
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate, upgrade
 from sqlalchemy import text
+from dotenv import load_dotenv
+import os
 
-app = create_app()
+# Load environment variables
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+load_dotenv(dotenv_path)
+
+# Print the value of DATABASE_URL to verify it is loaded correctly
+db_url = os.environ.get('DATABASE_URL')
+print(f"DATABASE_URL from .env: {db_url}")
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+print(f"Connected to {app.config['SQLALCHEMY_DATABASE_URI']}")
+
+# Ensure we're using PostgreSQL
+assert 'postgresql' in db_url, "Not connected to PostgreSQL"
+
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)  # Ensure Migrate is initialized
 
 with app.app_context():
-    try:
-        print(f"Connected to: {app.config['SQLALCHEMY_DATABASE_URI']}")
-        
-        # Drop existing tables using a connection and text construct
-        with db.engine.begin() as connection:
-            connection.execute(text("DROP TABLE IF EXISTS compliance_alert"))
-            connection.execute(text("DROP TABLE IF EXISTS document"))
-            connection.execute(text("DROP TABLE IF EXISTS vehicle"))
-            connection.execute(text("DROP TABLE IF EXISTS user"))
-        print("Tables dropped successfully.")
+    # Drop existing tables using a connection and text construct
+    with db.engine.begin() as connection:
+        connection.execute(text('DROP TABLE IF EXISTS "compliance_alert" CASCADE'))
+        connection.execute(text('DROP TABLE IF EXISTS "document" CASCADE'))
+        connection.execute(text('DROP TABLE IF EXISTS "vehicle" CASCADE'))
+        connection.execute(text('DROP TABLE IF EXISTS "user" CASCADE'))
+    
+    # Create new tables
+    db.create_all()
 
-        # Clear Alembic version table to reset migration state
-        with db.engine.begin() as connection:
-            connection.execute(text("DELETE FROM alembic_version"))
-        print("Alembic version reset successfully.")
-
-        # Create new tables based on model definitions
-        db.create_all()
-        print("Tables created successfully.")
-        
-        # Apply migrations
-        upgrade()
-        print("Migrations applied successfully.")
-        
-    except Exception as e:
-        print(f"Error occurred: {e}")
+    # Apply migrations
+    upgrade()
 
     print("Database has been reset and tables created successfully!")

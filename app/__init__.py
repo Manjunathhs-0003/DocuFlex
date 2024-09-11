@@ -10,7 +10,9 @@ from app.config import Config
 from dotenv import load_dotenv
 import os
 
-load_dotenv()  
+# Load environment variables
+dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
+load_dotenv(dotenv_path)
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
