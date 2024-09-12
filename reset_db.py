@@ -1,4 +1,3 @@
-# reset_db.py
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate, upgrade
@@ -6,13 +5,16 @@ from sqlalchemy import text
 from dotenv import load_dotenv
 import os
 
-# Load environment variables
+# Load environment variables from .env file
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
-# Print the value of DATABASE_URL to verify it is loaded correctly
+# Print the DATABASE_URL to verify it's loaded correctly
 db_url = os.environ.get('DATABASE_URL')
 print(f"DATABASE_URL from .env: {db_url}")
+
+if db_url is None:
+    raise ValueError("DATABASE_URL environment variable is not set correctly.")
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
