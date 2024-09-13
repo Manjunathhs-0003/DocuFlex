@@ -704,8 +704,7 @@ def delete_vehicle_post_otp(vehicle_id):
 
         db.session.delete(vehicle)
         db.session.commit()
-        flash("Your vehicle has been deleted!", "success")
-        log_action(f"User {current_user.username} deleted vehicle {vehicle.name}")
+        log_action(current_user, f"User {current_user.username} deleted vehicle {vehicle.name}")
 
         print(f"[DEBUG - Deletion Success] Vehicle {vehicle_id} deleted successfully.")
         return redirect(url_for("main.list_vehicles"))
