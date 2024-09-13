@@ -31,7 +31,6 @@
                     <p>Upload Date: {{ document.date_posted.strftime('%Y-%m-%d') }} | Start Date: {{ document.start_date.strftime('%Y-%m-%d') }} | End Date: {{ document.end_date.strftime('%Y-%m-%d') }}</p>
                 </span>
                 <span>
-                    <a href="{{ url_for('main.download_document', document_id=document.id) }}" class="btn btn-primary btn-sm">Download</a>
                     <form action="{{ url_for('main.delete_profile_document', document_id=document.id) }}" method="POST" class="d-inline">
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                     </form>
