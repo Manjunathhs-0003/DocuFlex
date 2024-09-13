@@ -41,9 +41,21 @@ from itsdangerous import URLSafeTimedSerializer
 from flask import current_app
 import re
 from app.utils import log_action, log_action_decorator
+from flask import jsonify, Blueprint
+from sqlalchemy import text
 
 main = Blueprint("main", __name__)
 
+@main.route('/test_db')
+def test_db():
+    try:
+        # Using the connection object to execute a raw SQL query
+        with db.engine.connect() as connection:
+            result = connection.execute(text("SELECT 1"))
+            result_value = result.scalar()
+            return jsonify({"success": True, "message": "Database connection successful!", "result": result_value})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
 
 # Route definitions
 @main.route("/")
@@ -128,13 +140,16 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
+        
         if form.submit.data:  # Handle login with password
             if user and bcrypt.check_password_hash(user.password, form.password.data):
+                logging.info(f"User found: {user}")
                 login_user(user, remember=True)
-                log_action(f"User {user.username} logged in with password")
+                log_action(user, f"User {user.username} logged in with password")  # Pass both user and action
                 return redirect(url_for("main.home"))
             else:
                 flash("Login unsuccessful. Please check email and password.", "danger")
+                logging.warning("Login unsuccessful. User not found or wrong password.")
         elif form.request_otp.data:  # Handle login with OTP
             if user:
                 otp = random.randint(100000, 999999)
@@ -144,10 +159,11 @@ def login():
                     "Your OTP Code", [user.email], f"Your OTP code is {otp}"
                 )
                 flash("An OTP has been sent to your email.", "info")
-                log_action(f"User {user.username} requested OTP for login")
+                log_action(user, f"User {user.username} requested OTP for login")  # Correct log_action call
                 return redirect(url_for("main.verify_otp"))
             else:
                 flash("No account found with that email.", "danger")
+                logging.warning("No account found with that email.")
 
     return render_template("login.html", form=form)
 

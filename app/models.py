@@ -3,19 +3,24 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from app import db, login_manager
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    phone = db.Column(db.String(20), nullable=True)  # Add phone field
+    phone = db.Column(db.String(20), nullable=True)
     image_file = db.Column(db.String(20), nullable=False, default="default.jpg")
     password = db.Column(db.String(60), nullable=False)
     vehicles = db.relationship("Vehicle", backref="owner", lazy=True)
     compliance_alerts = db.relationship('ComplianceAlert', backref='user', lazy=True)
     feedbacks = db.relationship('Feedback', backref='user', lazy=True)
     logs = db.relationship('Log', backref='user', lazy=True)
-
+    
+    def __repr__(self):
+        return f'<User {self.username}>'
 
 class Vehicle(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -25,12 +30,18 @@ class Vehicle(db.Model):
     documents = db.relationship(
         "Document", backref="vehicle", lazy=True, cascade="all, delete-orphan"
     )
+    
+    def __repr__(self):
+        return f'<Vehicle {self.name}>'
 
 class ComplianceAlert(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     message = db.Column(db.String(250), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     
+    def __repr__(self):
+        return f'<ComplianceAlert {self.message}>'
+
 class Document(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     document_type = db.Column(db.String(50), nullable=False)
@@ -48,9 +59,9 @@ class Document(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     status = db.Column(db.String(20), nullable=True)
     file_path = db.Column(db.String(300), nullable=True)
+    
     def __repr__(self):
-        return f"<Document {self.document_type}>"
-
+        return f'<Document {self.document_type}>'
 
 class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -59,7 +70,7 @@ class Log(db.Model):
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def __repr__(self):
-        return f"<Log {self.action}>"
+        return f'<Log {self.action}>'
     
 class Feedback(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -68,4 +79,4 @@ class Feedback(db.Model):
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     def __repr__(self):
-        return f"<Feedback {self.feedback_text}>"
+        return f'<Feedback {self.feedback_text}>'

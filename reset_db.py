@@ -9,7 +9,7 @@ import os
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
-# Print the DATABASE_URL to verify it's loaded correctly
+# Retrieve the DATABASE_URL to verify it's loaded correctly
 db_url = os.environ.get('DATABASE_URL')
 print(f"DATABASE_URL from .env: {db_url}")
 
