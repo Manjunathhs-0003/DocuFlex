@@ -26,20 +26,24 @@ print(f"Connected to {app.config['SQLALCHEMY_DATABASE_URI']}")
 assert 'postgresql' in db_url, "Not connected to PostgreSQL"
 
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)  # Ensure Migrate is initialized
+migrate = Migrate(app, db)
 
 with app.app_context():
     # Drop existing tables using a connection and text construct
+    print("Dropping all tables...")
     with db.engine.begin() as connection:
         connection.execute(text('DROP TABLE IF EXISTS "compliance_alert" CASCADE'))
         connection.execute(text('DROP TABLE IF EXISTS "document" CASCADE'))
         connection.execute(text('DROP TABLE IF EXISTS "vehicle" CASCADE'))
         connection.execute(text('DROP TABLE IF EXISTS "user" CASCADE'))
+        connection.execute(text('DROP TABLE IF EXISTS "log" CASCADE'))
     
     # Create new tables
+    print("Creating new tables...")
     db.create_all()
 
     # Apply migrations
+    print("Applying migrations...")
     upgrade()
 
     print("Database has been reset and tables created successfully!")
