@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
 class Config:
@@ -10,7 +9,6 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     TIMEZONE = os.environ.get("TIMEZONE", "UTC")
 
-    # Flask-Mail Configuration
     MAIL_SERVER = "smtp.gmail.com"
     MAIL_PORT = 587
     MAIL_USE_TLS = True
@@ -18,7 +16,6 @@ class Config:
     MAIL_PASSWORD = os.environ.get("EMAIL_PASS")
     MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER")
 
-    # Twilio Configuration
     TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
     TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
     TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER')

@@ -26,7 +26,7 @@ class RegistrationForm(FlaskForm):
             DataRequired(),
             Regexp(r"^\d{10}$", message="Invalid phone number. Must be 10 digits."),
         ],
-    )  # Add validators to ensure 10 digit number
+    ) 
     password = PasswordField("Password", validators=[DataRequired()])
     confirm_password = PasswordField(
         "Confirm Password", validators=[DataRequired(), EqualTo("password")]
@@ -48,14 +48,13 @@ class RegistrationForm(FlaskForm):
     def validate_phone(self, phone):
         user = User.query.filter_by(
             phone=f"+91{phone.data}"
-        ).first()  # check to avoid duplicates
+        ).first() 
         if user:
             raise ValidationError("This phone number is already registered.")
 
     def validate_on_submit(self):
         rv = super(RegistrationForm, self).validate_on_submit()
         if rv:
-            # Prepend +91 to phone numbers
             self.phone.data = f"+91{self.phone.data}"
         return rv
 
@@ -124,7 +123,6 @@ class VehicleForm(FlaskForm):
         super(VehicleForm, self).__init__(*args, **kwargs)
 
     def validate_vehicle_number(self, vehicle_number):
-        # Skip validation if editing the same vehicle
         vehicle = Vehicle.query.filter_by(vehicle_number=vehicle_number.data).first()
         if vehicle and (self.vehicle_id is None or vehicle.id != self.vehicle_id):
             raise ValidationError(
@@ -148,7 +146,6 @@ class DocumentForm(FlaskForm):
     start_date = DateField("Start Date", format="%Y-%m-%d", validators=[Optional()])
     end_date = DateField("End Date", format="%Y-%m-%d", validators=[Optional()])
 
-    # Insurance Fields
     insurance_policy_number = StringField("Policy Number", validators=[Optional()])
     insurance_company_name = StringField("Insurance Company Name", validators=[Optional()])
     policy_start_date = DateField("Policy Start Date", format="%Y-%m-%d", validators=[Optional()])
@@ -156,25 +153,21 @@ class DocumentForm(FlaskForm):
     policy_coverage_amount = FloatField("Policy Coverage Amount", validators=[Optional()])
     
     
-    # Emission Certificate Fields
     emission_certificate_number = StringField("Certificate Number", validators=[Optional()])
     emission_start_date = DateField("Certificate Start Date", format="%Y-%m-%d", validators=[Optional()])
     emission_end_date = DateField("Certificate End Date", format="%Y-%m-%d", validators=[Optional()])
 
 
-    # Permit Fields
     permit_number = StringField("Permit Number", validators=[Optional()])
     issuing_authority = StringField("Issuing Authority", validators=[Optional()])
     permit_start_date = DateField("Permit Start Date", format="%Y-%m-%d", validators=[Optional()])
     permit_end_date = DateField("Permit End Date", format="%Y-%m-%d", validators=[Optional()])
 
-    # Fitness Certificate Fields
     fitness_certificate_number = StringField("Fitness Certificate Number", validators=[Optional()])
     fitness_issuing_authority = StringField("Issuing Authority", validators=[Optional()])
     fitness_start_date = DateField("Fitness Start Date", format="%Y-%m-%d", validators=[Optional()])
     fitness_end_date = DateField("Fitness End Date", format="%Y-%m-%d", validators=[Optional()])
 
-    # Road Tax Fields
     road_tax_receipt_number = StringField("Receipt Number", validators=[Optional()])
     road_tax_amount = FloatField("Amount Paid", validators=[Optional()])
     road_tax_payment_date = DateField("Payment Date", format="%Y-%m-%d", validators=[Optional()])
@@ -182,7 +175,6 @@ class DocumentForm(FlaskForm):
     submit = SubmitField("Add Document")
 
     def update_fields(self, document_type):
-            # Reset validators to base state
             self.serial_number.validators = [Optional()]
             self.start_date.validators = [Optional()]
             self.end_date.validators = [Optional()]
