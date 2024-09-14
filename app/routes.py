@@ -49,7 +49,6 @@ main = Blueprint("main", __name__)
 @main.route('/test_db')
 def test_db():
     try:
-        # Using the connection object to execute a raw SQL query
         with db.engine.connect() as connection:
             result = connection.execute(text("SELECT 1"))
             result_value = result.scalar()
@@ -57,7 +56,6 @@ def test_db():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
 
-# Route definitions
 @main.route("/")
 def index():
     if current_user.is_authenticated:
@@ -72,7 +70,6 @@ def home():
     return render_template("home.html", vehicles=vehicles)
 
 
-# Utility functions
 def generate_recovery_token(user_email):
     s = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
     return s.dumps(user_email, salt=current_app.config["SECURITY_PASSWORD_SALT"])
@@ -101,7 +98,7 @@ def send_sms(to, body):
 
 def notify_user(document):
     user = document.vehicle.owner
-    expiration_alert_period = timedelta(days=30)  # Notify 30 days before expiration
+    expiration_alert_period = timedelta(days=10) 
     current_time = datetime.utcnow()
 
     if 0 <= (document.end_date - current_time).days <= expiration_alert_period.days:
@@ -141,7 +138,7 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         
-        if form.submit.data:  # Handle login with password
+        if form.submit.data:  
             if user and bcrypt.check_password_hash(user.password, form.password.data):
                 logging.info(f"User found: {user}")
                 login_user(user, remember=True)
@@ -901,7 +898,6 @@ def update_password():
 def manage_notifications():
     form = ManageNotificationsForm()
     if form.validate_on_submit():
-        # Update user notification preferences
         current_user.notifications_enabled = form.notifications_enabled.data
         db.session.commit()
         flash("Notification preferences updated.", "success")
