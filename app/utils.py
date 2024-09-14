@@ -1,13 +1,18 @@
-from flask import current_app
+from flask import current_app, session
 from sqlalchemy.exc import SQLAlchemyError
 from app import db
 from app.models import Log
 from flask_login import current_user
+import random
+import smtplib
+from email.mime.text import MIMEText
 from functools import wraps
 
-def log_action(user, action):
+def log_action(action, user=None):
     try:
-        user_id = user.id if user.is_authenticated else None
+        if user is None:
+            user = current_user if current_user.is_authenticated else None
+        user_id = user.id if user and user.is_authenticated else None
         log_entry = Log(user_id=user_id, action=action)
         db.session.add(log_entry)
         db.session.commit()
@@ -34,3 +39,27 @@ def log_action_decorator(action_description):
         return decorated_function
 
     return decorator
+
+# Function to send OTP
+def send_otp(email):
+    otp = random.randint(100000, 999999)
+    message = MIMEText(f"Your OTP code is {otp}")
+    message["Subject"] = "Your OTP Code"
+    message["From"] = current_app.config["MAIL_DEFAULT_SENDER"]
+    message["To"] = email
+
+    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        server.starttls()
+        server.login(current_app.config["MAIL_USERNAME"], current_app.config["MAIL_PASSWORD"])
+        server.sendmail(message["From"], [message["To"]], message.as_string())
+
+    # Store OTP in session for verification
+    session['otp'] = otp
+    return otp
+
+# Function to verify OTP
+def verify_otp(session_otp, user_otp):
+    try:
+        return session_otp == int(user_otp)
+    except (TypeError, ValueError):
+        return False

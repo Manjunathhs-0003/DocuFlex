@@ -62,6 +62,15 @@
         <a href="{{ url_for('main.new_vehicle') }}" class="btn btn-success mt-3">Add New Vehicle</a>
     </div>
 
+    <!-- Add Delete Account Button in Profile Section -->
+<h2 class="mt-4">Account Settings</h2>
+<div class="list-group">
+    <a href="{{ url_for('main.update_password') }}" class="list-group-item list-group-item-action">Update Password</a>
+    <a href="{{ url_for('main.manage_notifications') }}" class="list-group-item list-group-item-action">Manage Notifications</a>
+    <a href="{{ url_for('main.adjust_privacy_settings') }}" class="list-group-item list-group-item-action">Adjust Privacy Settings</a>
+    <a href="{{ url_for('main.delete_account_request') }}" class="list-group-item list-group-item-action text-danger">Delete Account</a>
+</div>
+
     <h2 class="mt-4">Compliance Alerts</h2>
     <div id="compliance-alerts" class="mt-3">
         <ul class="list-group">

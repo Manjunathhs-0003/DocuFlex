@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm Account Deletion{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-4">Confirm Account Deletion</h1>
+    <p>An OTP has been sent to your email. Please enter the OTP below to confirm account deletion.</p>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="otp" class="form-label">OTP</label>
+            <input type="text" name="otp" class="form-control" id="otp" required>
+        </div>
+        <button type="submit" class="btn btn-danger">Delete Account</button>
+    </form>
+</div>
+{% endblock %}

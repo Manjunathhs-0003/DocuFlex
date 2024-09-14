@@ -40,7 +40,7 @@ import random
 from itsdangerous import URLSafeTimedSerializer
 from flask import current_app
 import re
-from app.utils import log_action, log_action_decorator
+from app.utils import log_action, log_action_decorator, send_otp
 from flask import jsonify, Blueprint
 from sqlalchemy import text
 
@@ -995,6 +995,40 @@ def feedback_form():
             log_action(current_user, f"User {current_user.username} failed to submit feedback: {e}")
         return redirect(url_for('main.profile'))
     return render_template('feedback_form.html', form=form)
+
+# Route to request account deletion
+@main.route("/account/delete_request")
+@login_required
+def delete_account_request():
+    otp = send_otp(current_user.email)
+    session['delete_otp'] = otp
+    flash("An OTP has been sent to your email. Please enter the OTP to confirm account deletion.", "info")
+    return redirect(url_for("main.confirm_delete_account"))
+
+# Route to confirm account deletion (shows form to enter OTP)
+@main.route("/account/confirm_delete", methods=["GET", "POST"])
+@login_required
+def confirm_delete_account():
+    if request.method == "POST":
+        otp = request.form.get('otp')
+        if verify_otp(session.get('delete_otp'), otp):
+            return redirect(url_for("main.delete_account"))
+        else:
+            flash("Invalid OTP. Please try again.", "danger")
+            return redirect(url_for("main.confirm_delete_account"))
+    return render_template("confirm_delete_account.html")
+
+# Route to delete account after OTP verification
+@main.route("/account/delete", methods=["POST"])
+@login_required
+def delete_account():
+    user = User.query.get_or_404(current_user.id)
+    db.session.delete(user)
+    db.session.commit()
+    log_action(f"User {current_user.username} deleted their account", user)
+    logout_user()
+    flash("Your account has been deleted.", "success")
+    return redirect(url_for("main.index"))
 
 @main.route("/feedbacks")
 @login_required
