@@ -142,12 +142,12 @@ def login():
             if user and bcrypt.check_password_hash(user.password, form.password.data):
                 logging.info(f"User found: {user}")
                 login_user(user, remember=True)
-                log_action(user, f"User {user.username} logged in with password")  # Pass both user and action
+                log_action(user, f"User {user.username} logged in with password") 
                 return redirect(url_for("main.home"))
             else:
                 flash("Login unsuccessful. Please check email and password.", "danger")
                 logging.warning("Login unsuccessful. User not found or wrong password.")
-        elif form.request_otp.data:  # Handle login with OTP
+        elif form.request_otp.data:
             if user:
                 otp = random.randint(100000, 999999)
                 session["otp"] = otp
@@ -156,7 +156,7 @@ def login():
                     "Your OTP Code", [user.email], f"Your OTP code is {otp}"
                 )
                 flash("An OTP has been sent to your email.", "info")
-                log_action(user, f"User {user.username} requested OTP for login")  # Correct log_action call
+                log_action(user, f"User {user.username} requested OTP for login") 
                 return redirect(url_for("main.verify_otp"))
             else:
                 flash("No account found with that email.", "danger")
@@ -245,7 +245,7 @@ def register():
         user = User(
             username=form.username.data,
             email=form.email.data,
-            phone=form.phone.data,  # Ensure proper field capture as +91 re-prefixed
+            phone=form.phone.data, 
             password=hashed_password,
         )
         db.session.add(user)
@@ -276,7 +276,7 @@ def view_vehicle(vehicle_id):
         Document.query.filter_by(vehicle_id=vehicle.id)
         .order_by(Document.id.desc())
         .all()
-    )  # Sort documents by ID
+    ) 
     return render_template("vehicle.html", vehicle=vehicle, documents=documents)
 
 
@@ -286,9 +286,9 @@ def add_document(vehicle_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
     form = DocumentForm()
     if form.validate_on_submit():
-        form.update_fields(form.document_type.data)  # Update fields based on document_type
+        form.update_fields(form.document_type.data) 
 
-        # Add the user_id for document creation
+       
         user_id = current_user.id
 
         additional_info = {}
@@ -342,8 +342,8 @@ def add_document(vehicle_id):
             document = Document(
                 document_type=form.document_type.data,
                 serial_number=form.road_tax_receipt_number.data,
-                start_date=form.road_tax_payment_date.data,  # Use payment date as start_date for storage
-                end_date=form.road_tax_payment_date.data,  # Store end_date as the same payment date, for simplicity
+                start_date=form.road_tax_payment_date.data, 
+                end_date=form.road_tax_payment_date.data, 
                 additional_info=json.dumps({
                     "amount_paid": form.road_tax_amount.data
                 }),
@@ -441,11 +441,10 @@ def delete_vehicle(vehicle_id):
         if vehicle.owner != current_user:
             abort(403)
 
-        # Clear session values after confirmation
         session.pop("delete_otp", None)
         session.pop("delete_vehicle_id", None)
         session.pop("otp_verified", None)
-        session.pop("otp_attempts", None)  # Reset attempts
+        session.pop("otp_attempts", None) 
 
         db.session.delete(vehicle)
         db.session.commit()
