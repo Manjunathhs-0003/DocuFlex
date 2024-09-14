@@ -10,11 +10,9 @@ from .config import Config
 from dotenv import load_dotenv
 import os
 
-# Load environment variables
 dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
 
-# Initialize extensions
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 login_manager = LoginManager()
@@ -37,7 +35,6 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
-    # Initialize extensions with the app
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
@@ -53,11 +50,9 @@ def create_app(config_class=Config):
         def load_user(user_id):
             return User.query.get(int(user_id))
 
-    # Register blueprints
     from .routes import main
     app.register_blueprint(main)
 
-    # Initialize and start the scheduler
     scheduler = BackgroundScheduler()
     scheduler.add_job(check_document_expirations, "interval", hours=24)
     scheduler.start()
