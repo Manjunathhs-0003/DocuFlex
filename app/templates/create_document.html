@@ -12,7 +12,6 @@
             {{ form.document_type(class="form-control", id="document_type") }}
         </div>
 
-        <!-- GENERAL FIELDS -->
         <div id="common-fields">
             <div class="form-group">
                 {{ form.serial_number.label(class="form-label") }}<br>
@@ -28,7 +27,6 @@
             </div>
         </div>
 
-        <!-- INSURANCE FIELDS -->
         <div id="insurance-fields" style="display:none;">
             <div class="form-group">
                 {{ form.insurance_policy_number.label(class="form-label") }}<br>
@@ -52,7 +50,6 @@
             </div>
         </div>
 
-        <!-- EMISSION CERTIFICATE FIELDS -->
         <div id="emission-fields" style="display:none;">
             <div class="form-group">
                 {{ form.emission_certificate_number.label(class="form-label") }}<br>
@@ -68,7 +65,6 @@
             </div>
         </div>
 
-        <!-- PERMIT FIELDS -->
         <div id="permit-fields" style="display:none;">
             <div class="form-group">
                 {{ form.permit_number.label(class="form-label") }}<br>
@@ -88,7 +84,6 @@
             </div>
         </div>
 
-        <!-- FITNESS CERTIFICATE FIELDS -->
         <div id="fitness-fields" style="display:none;">
             <div class="form-group">
                 {{ form.fitness_certificate_number.label(class="form-label") }}<br>
@@ -108,7 +103,6 @@
             </div>
         </div>
 
-        <!-- ROAD TAX FIELDS -->
         <div id="road-tax-fields" style="display:none;">
             <div class="form-group">
                 {{ form.road_tax_receipt_number.label(class="form-label") }}<br>
@@ -124,14 +118,12 @@
             </div>
         </div>
 
-        <!-- SUBMIT BUTTON -->
         <div class="form-group">
             {{ form.submit(class="btn btn-primary") }}
         </div>
     </form>
 </div>
 
-<!-- JavaScript to toggle fields based on document type -->
 <script>
     document.getElementById('document_type').onchange = function() {
         var docType = this.value;
@@ -164,7 +156,6 @@
         }
     };
 
-    // Trigger change event to set the correct initial state
     document.getElementById('document_type').onchange();
 </script>
 {% endblock %}

@@ -13,7 +13,6 @@
             {{ form.document_type(class="form-control", id="document_type", readonly=True) }}
         </div>
 
-        <!-- FIELDS FOR INSURANCE -->
         <div id="insurance-fields" style="display:none;">
             <div class="form-group">
                 {{ form.insurance_policy_number.label(class="form-label") }}<br>
@@ -37,7 +36,6 @@
             </div>
         </div>
 
-        <!-- FIELDS FOR EMISSION CERTIFICATE -->
         <div id="emission-fields" style="display:none;">
             <div class="form-group">
                 {{ form.emission_certificate_number.label(class="form-label") }}<br>
@@ -53,7 +51,6 @@
             </div>
         </div>
 
-        <!-- FIELDS FOR PERMIT -->
         <div id="permit-fields" style="display:none;">
             <div class="form-group">
                 {{ form.permit_number.label(class="form-label") }}<br>
@@ -73,7 +70,6 @@
             </div>
         </div>
 
-        <!-- FIELDS FOR FITNESS CERTIFICATE -->
         <div id="fitness-fields" style="display:none;">
             <div class="form-group">
                 {{ form.fitness_certificate_number.label(class="form-label") }}<br>
@@ -93,7 +89,6 @@
             </div>
         </div>
 
-        <!-- FIELDS FOR ROAD TAX -->
         <div id="road-tax-fields" style="display:none;">
             <div class="form-group">
                 {{ form.road_tax_receipt_number.label(class="form-label") }}<br>
@@ -109,18 +104,16 @@
             </div>
         </div>
 
-        <!-- SUBMIT BUTTON -->
         <div class="form-group">
             {{ form.submit(class="btn btn-primary", value="Save Changes") }}
         </div>
     </form>
 </div>
 
-<!-- JavaScript to toggle fields based on document type -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var docType = document.getElementById('document_type').value;
-        toggleFieldsByDocType(docType); // Initialize fields based on current docType
+        toggleFieldsByDocType(docType); 
     });
 
     document.getElementById('document_type').onchange = function() {

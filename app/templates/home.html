@@ -3,7 +3,6 @@
 {% block title %}Home - Fleet Management{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
 <div class="jumbotron text-center mt-4">
     <h1 class="display-4">Streamline Your Fleet Management with Ease</h1>
     <p class="lead">Efficiently manage your fleet's documents and records with our comprehensive tools.</p>
@@ -16,7 +15,6 @@
     {% endif %}
 </div>
 
-<!-- Always Show Key Features -->
 <div class="container mt-5">
     <h2 class="text-center">Key Features</h2>
     <div class="row mt-4">
@@ -43,9 +41,7 @@
     </div>
 </div>
 
-<!-- Conditional Display Based on Authentication Status -->
 {% if current_user.is_authenticated %}
-    <!-- Your Vehicles Section -->
     <div class="container mt-5">
         <h2>Your Vehicles</h2>
         <div class="row">
@@ -58,10 +54,6 @@
                     <div class="card-body">
                         <p class="card-text">Owner: {{ vehicle.owner.username }}</p>
                         <a href="{{ url_for('main.view_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-info btn-sm">View</a>
-                        <!-- <a href="{{ url_for('main.edit_vehicle', vehicle_id=vehicle.id) }}" class="btn btn-warning btn-sm">Edit</a> -->
-                        <!-- <form action="{{ url_for('main.send_delete_otp', vehicle_id=vehicle.id) }}" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                        </form> -->
                     </div>
                     <div class="card-footer">
                         <h5 class="mb-3">Documents</h5>
@@ -69,12 +61,6 @@
                             {% for document in vehicle.documents %}
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 {{ document.document_type }} - Expires: {{ document.end_date.strftime('%Y-%m-%d') }}
-                                <!-- <span>
-                                    <a href="{{ url_for('main.edit_document', vehicle_id=vehicle.id, document_id=document.id) }}" class="btn btn-warning btn-sm">Edit</a>
-                                    <form action="{{ url_for('main.send_delete_document_otp', vehicle_id=vehicle.id, document_id=document.id) }}" method="POST" class="d-inline">
-                                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                                    </form>
-                                </span> -->
                             </li>
                             {% endfor %}
                         </ul>
@@ -86,14 +72,12 @@
         </div>
     </div>
 {% else %}
-    <!-- Information Section for Users Not Logged In -->
     <div class="container mt-5">
         <h2>About Fleet Management</h2>
         <p>We provide transportation facilities for non-flammable goods all over India. Our logistics company is dedicated to providing seamless and efficient transportation and supply chain solutions. With a strong commitment to reliability and customer satisfaction, we specialize in the safe and timely delivery of goods to destinations across the region. Whether it's warehousing, distribution, or freight forwarding, we leverage our expertise and cutting-edge technology to meet your logistics needs. Trust us to keep your supply chain running smoothly.</p>
     </div>
 {% endif %}
 
-<!-- Footer Section -->
 <footer class="footer bg-dark text-white mt-5 py-4">
     <div class="container text-center">
         <p>Follow Us</p>
