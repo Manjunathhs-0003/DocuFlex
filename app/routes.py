@@ -904,7 +904,6 @@ def manage_notifications():
 def adjust_privacy_settings():
     form = AdjustPrivacySettingsForm()
     if form.validate_on_submit():
-        # Update user privacy settings
         current_user.privacy_settings = form.privacy_settings.data
         db.session.commit()
         flash("Privacy settings updated.", "success")
