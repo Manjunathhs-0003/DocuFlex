@@ -406,7 +406,6 @@ def edit_vehicle(vehicle_id):
 
     return render_template("edit_vehicle.html", form=form)
 
-# Ensure other routes also call log_action correctly
 @main.route("/vehicle/new", methods=["GET", "POST"])
 @login_required
 def new_vehicle():
@@ -421,12 +420,12 @@ def new_vehicle():
             db.session.add(vehicle)
             db.session.commit()
             flash("Your vehicle has been created!", "success")
-            log_action(current_user, f"User {current_user.username} created vehicle {vehicle.name}")
+            log_action(f"User {current_user.username} created vehicle {vehicle.name}", current_user)
             return redirect(url_for("main.list_vehicles"))
         except IntegrityError:
             db.session.rollback()
             flash("Vehicle number already exists. Please use a different vehicle number.", "danger")
-            log_action(current_user, f"User {current_user.username} failed to create vehicle {vehicle.name} due to duplicate vehicle number")
+            log_action(f"User {current_user.username} failed to create vehicle {vehicle.name} due to duplicate vehicle number", current_user)
 
     return render_template("create_vehicle.html", form=form)
 
@@ -704,7 +703,7 @@ def delete_vehicle_post_otp(vehicle_id):
 
         db.session.delete(vehicle)
         db.session.commit()
-        log_action(current_user, f"User {current_user.username} deleted vehicle {vehicle.name}")
+        log_action(f"User {current_user.username} deleted vehicle {vehicle.name}", current_user)
 
         print(f"[DEBUG - Deletion Success] Vehicle {vehicle_id} deleted successfully.")
         return redirect(url_for("main.list_vehicles"))
