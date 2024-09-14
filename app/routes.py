@@ -523,7 +523,7 @@ def edit_document(vehicle_id, document_id):
             db.session.rollback()
             flash("An error occurred while saving your changes. Please try again.", "danger")
 
-    # Pre-fill form fields upon GET request
+   
     if request.method == "GET":
         if document.document_type == "Insurance":
             form.insurance_policy_number.data = document.serial_number
@@ -599,7 +599,7 @@ def renew_document(document_id):
 
 
 @main.route("/logs")
-@login_required  # Ensure only logged-in users can see this
+@login_required  
 def view_logs():
     logs = Log.query.order_by(Log.timestamp.desc()).all()
     return render_template("view_logs.html", logs=logs)
@@ -615,7 +615,7 @@ def send_delete_otp(vehicle_id):
     otp = random.randint(100000, 999999)
     session["delete_otp"] = otp
     session["delete_vehicle_id"] = vehicle_id
-    session['otp_attempts'] = 0  # Reset attempts
+    session['otp_attempts'] = 0 
 
     send_notification("Your OTP Code for Deletion", [current_user.email], f"Your OTP code is {otp}")
 
@@ -668,7 +668,7 @@ def verify_delete_otp(vehicle_id):
 @main.route("/confirm_delete_vehicle/<int:vehicle_id>", methods=["GET", "POST"])
 @login_required
 def confirm_delete_vehicle(vehicle_id):
-    vehicle = Vehicle.query.get_or_404(vehicle_id)  # Ensure vehicle is loaded
+    vehicle = Vehicle.query.get_or_404(vehicle_id) 
     if request.method == "POST":
         print("[DEBUG] Confirm deletion POST request")
         return redirect(url_for("main.delete_vehicle_post_otp", vehicle_id=vehicle_id))
@@ -691,7 +691,6 @@ def delete_vehicle_post_otp(vehicle_id):
         if vehicle.owner != current_user:
             abort(403)
 
-        # Clear session values after confirmation
         session.pop("delete_otp", None)
         session.pop("delete_vehicle_id", None)
         session.pop("otp_verified", None)
@@ -710,7 +709,7 @@ def delete_vehicle_post_otp(vehicle_id):
 
 @main.route(
     "/send_delete_document_otp/<int:vehicle_id>/<int:document_id>", methods=["POST"]
-)  # Ensure it accepts POST
+) 
 @login_required
 def send_delete_document_otp(vehicle_id, document_id):
     vehicle = Vehicle.query.get_or_404(vehicle_id)
@@ -745,7 +744,7 @@ def send_delete_document_otp(vehicle_id, document_id):
 @login_required
 def verify_delete_document_otp(vehicle_id, document_id):
     form = OTPDeletionForm()
-    attempt_limit = 3  # Set the maximum number of attempts
+    attempt_limit = 3 
 
     if "otp_attempts_doc" not in session:
         session["otp_attempts_doc"] = 0
@@ -763,7 +762,7 @@ def verify_delete_document_otp(vehicle_id, document_id):
             session.pop("delete_document_otp", None)
             session.pop("delete_document_id", None)
             session.pop("delete_vehicle_id", None)
-            session.pop("otp_attempts_doc", None)  # Reset attempts on success
+            session.pop("otp_attempts_doc", None) 
 
             document = Document.query.get_or_404(document_id)
             if (
@@ -786,7 +785,7 @@ def verify_delete_document_otp(vehicle_id, document_id):
             if session["otp_attempts_doc"] >= attempt_limit:
                 otp = random.randint(100000, 999999)
                 session["delete_document_otp"] = otp
-                session["otp_attempts_doc"] = 0  # Reset attempt count
+                session["otp_attempts_doc"] = 0 
                 send_notification(
                     "Your New OTP Code for Deletion",
                     [current_user.email],
@@ -818,10 +817,8 @@ def edit_profile():
         current_user.email = form.email.data
         new_phone = f"+91{form.phone.data}"
 
-        # Handling phone number change
         if new_phone != current_user.phone:
             print(f"Phone number changed from {current_user.phone} to {new_phone}")
-            # Send OTP for new phone verification
             session['new_phone'] = new_phone
             otp = random.randint(100000, 999999)
             session["otp"] = otp
@@ -844,7 +841,6 @@ def edit_profile():
         form.email.data = current_user.email
         form.phone.data = current_user.phone[3:] if current_user.phone.startswith('+91') else current_user.phone
 
-    # Print for verification
     print(f"GET username: {form.username.data} Email: {form.email.data} Phone: {form.phone.data}")
 
     return render_template('edit_profile.html', form=form)
