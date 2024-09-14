@@ -995,7 +995,6 @@ def feedback_form():
         return redirect(url_for('main.profile'))
     return render_template('feedback_form.html', form=form)
 
-# Route to request account deletion
 @main.route("/account/delete_request")
 @login_required
 def delete_account_request():
@@ -1004,7 +1003,6 @@ def delete_account_request():
     flash("An OTP has been sent to your email. Please enter the OTP to confirm account deletion.", "info")
     return redirect(url_for("main.confirm_delete_account"))
 
-# Route to confirm account deletion (shows form to enter OTP)
 @main.route("/account/confirm_delete", methods=["GET", "POST"])
 @login_required
 def confirm_delete_account():
@@ -1017,7 +1015,6 @@ def confirm_delete_account():
             return redirect(url_for("main.confirm_delete_account"))
     return render_template("confirm_delete_account.html")
 
-# Route to delete account after OTP verification
 @main.route("/account/delete", methods=["POST"])
 @login_required
 def delete_account():
@@ -1035,5 +1032,4 @@ def view_feedbacks():
     feedbacks = Feedback.query.order_by(Feedback.timestamp.desc()).all()
     return render_template("view_feedbacks.html", feedbacks=feedbacks)
 
-# Setup basic logging configuration
 logging.basicConfig(level=logging.INFO)
