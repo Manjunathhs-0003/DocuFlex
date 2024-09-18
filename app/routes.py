@@ -42,7 +42,7 @@ from flask import current_app
 import re
 from app.utils import log_action, log_action_decorator, send_otp
 from flask import jsonify, Blueprint
-from sqlalchemy import text
+from sqlalchemy import text, String
 
 main = Blueprint("main", __name__)
 
@@ -950,11 +950,12 @@ def delete_profile_document(document_id):
 @login_required
 def search_documents():
     query = request.args.get('query')
+    search_filter = f"%{query}%"
     documents = Document.query.filter(
         Document.user_id == current_user.id,
-        (Document.document_type.like(f"%{query}%") |
-         Document.start_date.like(f"%{query}%") |
-         Document.end_date.like(f"%{query}%"))
+        (Document.document_type.like(search_filter) |
+         Document.start_date.cast(String).like(search_filter) |
+         Document.end_date.cast(String).like(search_filter))
     ).all()
     flash(f"Showing results for: {query}", "info")
     return render_template("profile.html", documents=documents)
