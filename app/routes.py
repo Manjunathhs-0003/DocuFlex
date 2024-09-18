@@ -978,11 +978,11 @@ def feedback_form():
             db.session.add(feedback)
             db.session.commit()
             flash("Thank you for your feedback!", "success")
-            log_action(current_user, f"User {current_user.username} submitted feedback")
+            log_action(f"User {current_user.username} submitted feedback", current_user)
         except Exception as e:
             db.session.rollback()
             flash("An error occurred while saving your feedback. Please try again.", "danger")
-            log_action(current_user, f"User {current_user.username} failed to submit feedback: {e}")
+            log_action(f"User {current_user.username} failed to submit feedback: {e}", current_user)
         return redirect(url_for('main.profile'))
     return render_template('feedback_form.html', form=form)
 

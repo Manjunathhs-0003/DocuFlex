@@ -40,6 +40,7 @@ def log_action_decorator(action_description):
 
     return decorator
 
+# Function to send OTP
 def send_otp(email):
     otp = random.randint(100000, 999999)
     message = MIMEText(f"Your OTP code is {otp}")
@@ -50,11 +51,13 @@ def send_otp(email):
     with smtplib.SMTP("smtp.gmail.com", 587) as server:
         server.starttls()
         server.login(current_app.config["MAIL_USERNAME"], current_app.config["MAIL_PASSWORD"])
-        server.sendmail(message["From"], [message["To"]], message.as_string())
+        server.sendmail(message["From"], [email], message.as_string())
 
+    # Store OTP in session for verification
     session['otp'] = otp
     return otp
 
+# Function to verify OTP
 def verify_otp(session_otp, user_otp):
     try:
         return session_otp == int(user_otp)
