@@ -379,9 +379,18 @@ def list_vehicles():
 @main.route("/profile")
 @login_required
 def profile():
-    vehicles = Vehicle.query.filter_by(owner=current_user).all()
-    documents = Document.query.filter_by(user_id=current_user.id).all()
-    return render_template("profile.html", vehicles=vehicles, documents=documents)
+    documents = db.session.query(Document, Vehicle).join(Vehicle).filter(Document.user_id == current_user.id).all()
+
+    vehicle_documents = {}
+    for document, vehicle in documents:
+        if vehicle.id not in vehicle_documents:
+            vehicle_documents[vehicle.id] = {
+                "vehicle": vehicle,
+                "documents": []
+            }
+        vehicle_documents[vehicle.id]["documents"].append(document)
+    
+    return render_template("profile.html", vehicle_documents=vehicle_documents)
 
 
 @main.route("/vehicle/<int:vehicle_id>/edit", methods=["GET", "POST"])
